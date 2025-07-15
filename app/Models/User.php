@@ -21,6 +21,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'center_id',
         'is_approved',
         'active',
+    '   latitude',
+        'longitude'
     ];
 
     protected $hidden = [
@@ -38,4 +40,21 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsTo(Center::class);
     }
+
+// الشحنات التي أرسلها المستخدم
+    public function shipmentsSent()
+{
+    return $this->hasMany(Shipment::class, 'client_id');
+}
+
+// الشحنات التي يقودها السائق
+   public function shipmentsAssigned()
+{
+    return $this->hasMany(Shipment::class, 'driver_id');
+}
+
+    public function shipmentOffers()
+    {
+        return $this->hasMany(ShipmentDriverOffer::class, 'driver_id');
+}
 }

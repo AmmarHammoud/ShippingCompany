@@ -21,9 +21,10 @@ return new class extends Migration
             $table->enum('role', ['super_admin', 'center_manager', 'driver', 'client'])->default('client');
             $table->foreignId('center_id')->nullable()->constrained('centers')->onDelete('set null');
 
-            $table->boolean('is_approved')->default(false); 
+            $table->boolean('is_approved')->default(false);
             $table->boolean('active')->default(true);
-
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
