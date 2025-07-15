@@ -21,8 +21,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'center_id',
         'is_approved',
         'active',
-    '   latitude',
-        'longitude'
+        'latitude',
+        'longitude',
+        'verification_code',
+        'email_verified_at',
     ];
 
     protected $hidden = [
