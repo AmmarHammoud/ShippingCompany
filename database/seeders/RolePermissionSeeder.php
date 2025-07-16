@@ -45,6 +45,9 @@ class RolePermissionSeeder extends Seeder
             'mark_driver_unavailable',
             'update_local_shipment_status',
 
+
+
+
             // Driver
             'view_assigned_shipments',
             'update_shipment_status',
