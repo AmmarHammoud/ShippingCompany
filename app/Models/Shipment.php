@@ -27,6 +27,7 @@ class Shipment extends Model
         'invoice_number',
         'barcode',
         'status',
+        'qr_code_url'
     ];
 
     public function client()

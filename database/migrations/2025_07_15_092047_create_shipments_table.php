@@ -36,6 +36,7 @@ return new class extends Migration
             $table->string('invoice_number')->unique();
             $table->string('barcode')->unique();
 
+            $table->string('qr_code_url')->nullable();
             // حالة الشحنة
             $table->enum('status', [
                 'pending',

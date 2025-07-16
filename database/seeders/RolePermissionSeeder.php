@@ -106,22 +106,21 @@ class RolePermissionSeeder extends Seeder
         $admin->assignRole('super_admin');
 
         $provinces = [
-            'دمشق',
-            'ريف دمشق',
-            'حلب',
-            'حمص',
-            'حماة',
-            'اللاذقية',
-            'طرطوس',
-            'إدلب',
-            'دير الزور',
-            'الحسكة',
-            'الرقة',
-            'درعا',
-            'السويداء',
-            'القنيطرة'
+            'Damascus',
+            'Rural Damascus',
+            'Aleppo',
+            'Homs',
+            'Hama',
+            'Latakia',
+            'Tartous',
+            'Idlib',
+            'Deir ez-Zor',
+            'Hasakah',
+            'Raqqa',
+            'Daraa',
+            'As-Suwayda',
+            'Quneitra'
         ];
-
         foreach ($provinces as $province) {
             $center = Center::where('name', $province)->first();
 
@@ -135,7 +134,7 @@ class RolePermissionSeeder extends Seeder
             $manager = User::firstOrCreate([
                 'email' => $email,
             ], [
-                'name' => 'مدير ' . $province,
+                'name' => 'Manager of ' . $province,
                 'password' => bcrypt('manager123'),
                 'role' => 'center_manager',
                 'center_id' => $center->id,

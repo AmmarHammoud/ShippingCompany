@@ -40,4 +40,19 @@ class ShipmentController extends Controller
             'shipment' => $shipment
         ]);
     }
+
+    public function confirmDelivery($barcode)
+    {
+        try {
+            $shipment = ShipmentCreationService::confirmByBarcode($barcode);
+
+            return response()->json([
+                'message' => 'Shipment receipt confirmed',
+                'shipment_id' => $shipment->id,
+                'recipient_name' => $shipment->recipient_name,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => 'shipment not found '], 404);
+        }
+    }
 }
