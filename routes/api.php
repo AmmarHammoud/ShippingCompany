@@ -12,10 +12,6 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/no', function(){
-    return response()->json("fjdoa");
-});
-
 Route::middleware(['auth:sanctum'])->prefix('shipments')->group(function () {
     Route::post('/recipient', [ShipmentController::class, 'storeRecipient']);
     Route::post('/details', [ShipmentController::class, 'storeDetails']);

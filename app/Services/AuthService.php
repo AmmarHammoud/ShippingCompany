@@ -92,6 +92,28 @@ class AuthService {
         return ['message' => __('messages.signout_successful')];
     }
 
+    public function updateProfile($request)
+    {
+        $user = Auth::user();
+        if (isset($request['name'])) $user['name'] = $request['name'];
+        $user->save();
+
+        if (isset($request['password'])) {
+            $request->validate([
+                'old_password' => 'required',
+                'password' => 'required|confirmed'
+            ]);
+            $matching = Hash::check($request->old_password, Auth::user()->getAuthPassword());
+            if (!$matching) {
+                throw new \Exception(__('messages.old_password_mismatch'));
+            }
+            $user['password'] = Hash::make($request->password);
+        }
+
+        $user->save();
+        return ['message' => __('messages.profile_updated_successfully'), 'profile' => $user];
+    }
+
      public function deleteAccount()
     {
         User::find(Auth::id())->delete();
