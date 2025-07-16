@@ -19,5 +19,6 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             CenterSeeder::class,
         ]);
+
     }
 }

@@ -8,7 +8,7 @@ use App\Models\ShipmentDriverOffer;
 
 class OfferShipmentToNearestDriverService
 {
-   
+
     public static function offerToNearestDriver(Shipment $shipment): ?User
     {
         $drivers = User::where('role', 'driver')
@@ -48,7 +48,7 @@ class OfferShipmentToNearestDriverService
         return null;
 
     }
-    private static function calculateDistance($lat1, $lng1, $lat2, $lng2): float
+    public static function calculateDistance($lat1, $lng1, $lat2, $lng2): float
     {
         $earthRadius = 6371; // نصف قطر الأرض بالكيلومتر
         $dLat = deg2rad($lat2 - $lat1);
