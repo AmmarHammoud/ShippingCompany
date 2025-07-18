@@ -11,11 +11,13 @@ class Shipment extends Model
 
     protected $fillable = [
         'client_id',
-        'driver_id',
+        'center_from_id',
+        'center_to_id',
+        'pickup_driver_id',
+        'delivery_driver_id',
         'sender_lat',
         'sender_lng',
-        'recipient_name',
-        'recipient_phone',
+        'recipient_id',
         'recipient_location',
         'recipient_lat',
         'recipient_lng',
@@ -23,6 +25,7 @@ class Shipment extends Model
         'number_of_pieces',
         'weight',
         'delivery_price',
+        'product_value',
         'total_amount',
         'invoice_number',
         'barcode',
@@ -43,5 +46,17 @@ class Shipment extends Model
     {
         return $this->hasMany(ShipmentDriverOffer::class);
     }
+    public function centerFrom()
+    {
+        return $this->belongsTo(Center::class, 'center_from_id');
+    }
 
+    public function centerTo()
+    {
+        return $this->belongsTo(Center::class, 'center_to_id');
+    }
+    public function recipient()
+    {
+        return $this->belongsTo(User::class, 'recipient_id');
+    }
 }

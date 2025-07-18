@@ -7,6 +7,7 @@ use App\Http\Requests\SignUpRequest;
 use App\Http\Requests\SignInRequest;
 use App\Services\AuthService;
 use App\Http\Responses\Response;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -16,7 +17,7 @@ class AuthController extends Controller
     {
         $this->userService = $userService;
     }
-    
+
     public function signUp(SignUpRequest $signUpRequest)
     {
         try {

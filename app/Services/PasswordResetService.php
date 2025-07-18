@@ -8,9 +8,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use mysql_xdevapi\Exception;
+use Exception;
 
-class ResetPasswordService
+class PasswordResetService
 {
     public function forgotPassword(Request $request)
     {

@@ -24,8 +24,7 @@ class StoreRecipientRequest extends FormRequest
 
 
         return [
-            'recipient_name' => 'required|string|max:255',
-            'recipient_phone' => 'required|string|max:20',
+            'recipient_phone' => 'required|string|max:20|exists:users,phone',
             'recipient_location' => 'nullable|string|max:255',
             'recipient_lat' => 'required|numeric|between:-90,90',
             'recipient_lng' => 'required|numeric|between:-180,180',

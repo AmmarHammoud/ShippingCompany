@@ -9,21 +9,32 @@ use App\Models\ShipmentDriverOffer;
 class OfferShipmentToNearestDriverService
 {
 
-    public static function offerToNearestDriver(Shipment $shipment): ?User
+
+  
+    public static function offer(Shipment $shipment, string $stage = 'pickup'): ?User
     {
+        $centerField = $stage === 'pickup' ? 'center_from_id' : 'center_to_id';
+        $driverField = $stage === 'pickup' ? 'pickup_driver_id' : 'delivery_driver_id';
+
+        if ($shipment->{$driverField}) {
+            return null;
+        }
+
         $drivers = User::where('role', 'driver')
             ->where('is_approved', true)
             ->where('active', true)
-            ->where('center_id', $shipment->client->center_id)
+            ->where('center_id', $shipment->{$centerField})
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->get();
 
-        // ترتيب السائقين حسب المسافة إلى المرسل
-        $sortedDrivers = $drivers->sortBy(function ($driver) use ($shipment) {
+        $sourceLat = $stage === 'pickup' ? $shipment->sender_lat : $shipment->centerTo?->latitude;
+        $sourceLng = $stage === 'pickup' ? $shipment->sender_lng : $shipment->centerTo?->longitude;
+
+        $sortedDrivers = $drivers->sortBy(function ($driver) use ($sourceLat, $sourceLng) {
             return self::calculateDistance(
-                $shipment->sender_lat,
-                $shipment->sender_lng,
+                $sourceLat,
+                $sourceLng,
                 $driver->latitude,
                 $driver->longitude
             );
@@ -32,12 +43,14 @@ class OfferShipmentToNearestDriverService
         foreach ($sortedDrivers as $driver) {
             $alreadyOffered = ShipmentDriverOffer::where('shipment_id', $shipment->id)
                 ->where('driver_id', $driver->id)
+                ->where('stage', $stage)
                 ->exists();
 
             if (! $alreadyOffered) {
                 ShipmentDriverOffer::create([
                     'shipment_id' => $shipment->id,
                     'driver_id'   => $driver->id,
+                    'stage'       => $stage,
                     'status'      => 'pending',
                 ]);
 
@@ -46,11 +59,14 @@ class OfferShipmentToNearestDriverService
         }
 
         return null;
-
     }
+
+    /**
+     * دالة حساب المسافة بين نقطتين (خطوط الطول والعرض)
+     */
     public static function calculateDistance($lat1, $lng1, $lat2, $lng2): float
     {
-        $earthRadius = 6371; // نصف قطر الأرض بالكيلومتر
+        $earthRadius = 6371; // بالكيلومتر
         $dLat = deg2rad($lat2 - $lat1);
         $dLng = deg2rad($lng2 - $lng1);
 

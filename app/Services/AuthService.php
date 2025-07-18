@@ -21,12 +21,13 @@ use Spatie\Permission\Models\Role;
 class AuthService {
     public function signup(Request $request): array
     {
-        
+
         $request->validated();
         //$image = $this->fileUploader->storeFile($request, 'image');
         $user = User::query()->create([
             'name' => $request->name,
             'email' => $request['email'],
+            'phone' => $request->phone,
             'password' => Hash::make($request['password'])
         ]);
         return $this->userCreation($request['role'], $user);

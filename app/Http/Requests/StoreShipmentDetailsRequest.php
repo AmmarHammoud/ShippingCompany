@@ -25,7 +25,7 @@ class StoreShipmentDetailsRequest extends FormRequest
             'shipment_type' => 'required|string|max:255',
             'number_of_pieces' => 'required|integer|min:1',
             'weight' => 'required|numeric|min:0.1',
-            'total_amount' => 'required|numeric|min:0.1',
+            'product_value' => 'required|numeric|min:0',
             'sender_lat' => 'required|numeric|between:-90,90',
             'sender_lng' => 'required|numeric|between:-180,180',
         ];

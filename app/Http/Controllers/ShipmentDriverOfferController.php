@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\HandleShipmentOfferRequest;
+use App\Models\Shipment;
+use App\Models\ShipmentDriverOffer;
 use App\Services\ShipmentDriverOfferService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ShipmentDriverOfferController extends Controller
 {
-    
+
     public function acceptOffer(int $shipmentId): JsonResponse
 {
         try {
@@ -41,7 +44,27 @@ class ShipmentDriverOfferController extends Controller
             return response()->json(['error' => $e->getMessage()], 409);
         }
     }
-    public function offersByStatus(Request $request    ): JsonResponse
+    public function confirmHandOverToCenter(Request $request, $shipmentId)
+    {
+        $shipment = ShipmentDriverOffer::findOrFail($shipmentId);
+        $driver = Auth::user();
+
+        try {
+            $updatedShipment = ShipmentDriverOfferService::confirmHandOverToCenter($shipment, $driver);
+
+            return response()->json([
+                'message' => 'Shipment handed over to center successfully.',
+                'shipment' => $updatedShipment,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        }
+    }
+
+
+
+
+    public function offersByStatus(Request $request): JsonResponse
     {
         $status = $request->query('status');
 
@@ -52,5 +75,44 @@ class ShipmentDriverOfferController extends Controller
         $offers = ShipmentDriverOfferService::getOffersByStatus($status);
 
         return response()->json(['offers' => $offers]);
+    }
+    public function myShipments(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'client') {
+            return response()->json(['error' => 'Access denied. Only clients can view their shipments.'], 403);
+        }
+
+        $status = $request->query('status');
+
+        $query = Shipment::with(['centerFrom', 'centerTo', 'pickupDriver', 'deliveryDriver'])
+            ->where('client_id', $user->id);
+
+        if ($status) {
+            $validStatuses = [
+                'pending',
+                'offered_pickup_driver',
+                'picked_up',
+                'in_transit_between_centers',
+                'arrived_at_destination_center',
+                'offered_delivery_driver',
+                'out_for_delivery',
+                'delivered',
+                'cancelled',
+            ];
+
+            if (!in_array($status, $validStatuses)) {
+                return response()->json(['error' => 'Invalid status provided.'], 422);
+            }
+
+            $query->where('status', $status);
+        }
+
+        $shipments = $query->latest()->get();
+
+        return response()->json([
+            'shipments' => $shipments,
+        ]);
     }
 }

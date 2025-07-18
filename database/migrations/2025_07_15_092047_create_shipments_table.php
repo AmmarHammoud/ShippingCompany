@@ -15,38 +15,47 @@ return new class extends Migration
             $table->id();
             $table->foreignId('client_id')->constrained('users')->onDelete('cascade');
 
-            $table->foreignId('driver_id')->nullable()->constrained('users')->onDelete('set null');
+
+            $table->foreignId('center_from_id')->nullable()->constrained('centers')->nullOnDelete();
+            $table->foreignId('center_to_id')->nullable()->constrained('centers')->nullOnDelete();
+
+            // السائق الذي يستلم من العميل
+            $table->foreignId('pickup_driver_id')->nullable()->constrained('users')->nullOnDelete();
+
+            // السائق الذي يوصّل للمستلم
+            $table->foreignId('delivery_driver_id')->nullable()->constrained('users')->nullOnDelete();
 
             $table->decimal('sender_lat', 10, 7);
             $table->decimal('sender_lng', 10, 7);
 
             $table->decimal('recipient_lat', 10, 7);
             $table->decimal('recipient_lng', 10, 7);
+            $table->foreignId('recipient_id')->constrained('users')->onDelete('cascade');
 
-            $table->string('recipient_name');
-            $table->string('recipient_phone');
             $table->string('recipient_location')->nullable();
 
             $table->string('shipment_type');
             $table->unsignedInteger('number_of_pieces');
             $table->decimal('weight', 8, 2);
             $table->decimal('delivery_price', 8, 2)->default(0);
+            $table->decimal('product_value', 10, 2);
             $table->decimal('total_amount', 8, 2);
 
             $table->string('invoice_number')->unique();
             $table->string('barcode')->unique();
 
             $table->string('qr_code_url')->nullable();
-            // حالة الشحنة
             $table->enum('status', [
-                'pending',
-                'offered_to_drivers',
-                'assigned',
-                'in_transit',
-                'delivered',
-                'cancelled'
+                'pending',               // تم إنشاؤها
+                'offered_pickup_driver', // بانتظار قبول أول سائق
+                'picked_up',             // السائق الأول أخذها
+                'in_transit_between_centers', // بين مركزين
+                'arrived_at_destination_center', // وصلت للمركز الثاني
+                'offered_delivery_driver', // بانتظار قبول سائق التسليم
+                'out_for_delivery',      // خرجت للمستلم
+                'delivered',             // تم التسليم
+                'cancelled',
             ])->default('pending');
-
             $table->timestamps();
         });
     }

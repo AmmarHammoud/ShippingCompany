@@ -100,6 +100,7 @@ class RolePermissionSeeder extends Seeder
         ], [
             'name' => 'System Admin',
             'password' => bcrypt('admin123'),
+            'phone'=>'04343',
             'role' => 'super_admin',
             'is_approved' => true,
             'active' => true,
@@ -139,6 +140,7 @@ class RolePermissionSeeder extends Seeder
             ], [
                 'name' => 'Manager of ' . $province,
                 'password' => bcrypt('manager123'),
+                'phone'=>Str::random(10),
                 'role' => 'center_manager',
                 'center_id' => $center->id,
                 'is_approved' => true,
