@@ -26,7 +26,12 @@ class SignUpRequest extends FormRequest
             'name' => 'required|string|min:3',
             'email' => 'required|string|email|unique:users',
             'role' => 'required|string',
-            //'password' => 'required|min:8|confirmed'
+             'phone' => [
+        'required',
+        'regex:/^(\+?963|0?9)\d{8}$/',
+        'unique:users' // Properly delimited regex
+    ],
+            'password' => 'required|min:8|confirmed'
         ];
     }
 }
