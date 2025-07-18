@@ -1,11 +1,10 @@
 <?php
 
 namespace App\Http\Requests;
-USE Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Validator;
+
 use Illuminate\Foundation\Http\FormRequest;
 
-class SignUpRequest extends FormRequest
+class ForgotPasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -20,13 +19,10 @@ class SignUpRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'name' => 'required|string|min:3',
-            'email' => 'required|string|email|unique:users',
-            'role' => 'required|string',
-            //'password' => 'required|min:8|confirmed'
+            'email' => 'required|email|exists:users'
         ];
     }
 }

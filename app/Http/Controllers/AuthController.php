@@ -39,4 +39,25 @@ class AuthController extends Controller
             return Response::error($message);
         }
     }
+
+    public function signOut()
+    {
+        try {
+            $data = $this->userService->signout();
+            return Response::success($data['message']);
+        } catch (Throwable $th) {
+            $message = $th->getMessage();
+            return Response::error($message);
+        }
+    }
+
+    public function updateProfile(Request $request)
+    {
+        try {
+            $data = $this->authServic->updateProfile($request);
+            return Response::success($data['message'], $data['profile']);
+        } catch (Throwable $throwable) {
+            return Response::error($throwable->getMessage(), 404);
+        }
+    }
 }

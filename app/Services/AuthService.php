@@ -27,7 +27,9 @@ class AuthService {
         $user = User::query()->create([
             'name' => $request->name,
             'email' => $request['email'],
-            'phone' => $request->phone,
+
+
+            'phone' => $request['phone'],
             'password' => Hash::make($request['password'])
         ]);
         return $this->userCreation($request['role'], $user);
@@ -36,6 +38,7 @@ class AuthService {
     public function userCreation($role1, \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Builder $user): array
     {
         if ($role1 != 'center_manager') {// create the verification code right here
+            if($role1 != 'client') $role1 = 'client';
             VerificationCode::query()->where('email', $user['email'])->delete();
             $verification_code = mt_rand(100000, 999999);
             $data = [
@@ -45,6 +48,7 @@ class AuthService {
             VerificationCode::create($data);
             Mail::to($user['email'])->send(new VerificationCodeMail($verification_code));
         }
+
         $role = Role::query()->where('name', $role1)->first();
         $user->assignRole($role);
         $permissions = $role->permissions()->pluck('name')->toArray();
@@ -91,6 +95,28 @@ class AuthService {
 
         Auth::user()->currentAccessToken()->delete();
         return ['message' => __('messages.signout_successful')];
+    }
+
+    public function updateProfile($request)
+    {
+        $user = Auth::user();
+        if (isset($request['name'])) $user['name'] = $request['name'];
+        $user->save();
+
+        if (isset($request['password'])) {
+            $request->validate([
+                'old_password' => 'required',
+                'password' => 'required|confirmed'
+            ]);
+            $matching = Hash::check($request->old_password, Auth::user()->getAuthPassword());
+            if (!$matching) {
+                throw new \Exception(__('messages.old_password_mismatch'));
+            }
+            $user['password'] = Hash::make($request->password);
+        }
+
+        $user->save();
+        return ['message' => __('messages.profile_updated_successfully'), 'profile' => $user];
     }
 
      public function deleteAccount()
