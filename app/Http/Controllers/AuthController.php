@@ -7,6 +7,7 @@ use App\Http\Requests\SignUpRequest;
 use App\Http\Requests\SignInRequest;
 use App\Services\AuthService;
 use App\Http\Responses\Response;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -33,6 +34,17 @@ class AuthController extends Controller
         try {
             $data = $this->userService->signin($signInRequest);
             return Response::success($data['message'], $data['user']);
+        } catch (Throwable $th) {
+            $message = $th->getMessage();
+            return Response::error($message);
+        }
+    }
+
+    public function signOut()
+    {
+        try {
+            $data = $this->userService->signout();
+            return Response::success($data['message']);
         } catch (Throwable $th) {
             $message = $th->getMessage();
             return Response::error($message);

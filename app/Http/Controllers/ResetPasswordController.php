@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CodeRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Responses\Response;
 use App\Mail\SendPasswordResetCode;
 use App\Models\PasswordResetCode;
@@ -22,7 +23,7 @@ class ResetPasswordController extends Controller
         $this->passwordResetService = $passwordResetService;
     }
 
-    public function forgotPassword(ResetPasswordRequest $request)
+    public function forgotPassword(ForgotPasswordRequest $request)
     {
         try {
             $data = $this->passwordResetService->forgotPassword($request);

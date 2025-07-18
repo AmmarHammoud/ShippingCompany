@@ -13,6 +13,12 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::middleware(['auth:sanctum', 'role:dr'])->group(function () {
+    Route::get('/noway', function (){
+        return response()->json('fdsfs');
+    });
+});
+
 Route::middleware(['auth:sanctum'])->prefix('shipments')->group(function () {
     Route::post('/recipient', [ShipmentController::class, 'storeRecipient']);
     Route::post('/details', [ShipmentController::class, 'storeDetails']);
@@ -25,6 +31,7 @@ Route::get('/offers', [ShipmentDriverOfferController::class, 'offersByStatus']);
 Route::controller(AuthController::class)->group(function () {
     Route::post('signup', 'signUp')->name('user.sign_up');
     Route::post('signin', 'signIn')->name('user.sign_in');
+    Route::get('signout', 'signOut')->middleware('auth:sanctum');
 });
 
 Route::controller(ResetPasswordController::class)->group(function () {

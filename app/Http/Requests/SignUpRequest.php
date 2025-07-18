@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Http\Requests;
-
+USE Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SignUpRequest extends FormRequest
@@ -24,8 +25,13 @@ class SignUpRequest extends FormRequest
         return [
             'name' => 'required|string|min:3',
             'email' => 'required|string|email|unique:users',
-            'role' => 'required|string',
-            //'password' => 'required|min:8|confirmed'
+             'phone' => [
+        'required',
+        'regex:/^(\+?963|0?9)\d{8}$/',
+        'unique:users' // Properly delimited regex
+    ],
+            //'role' => 'required|string',
+            'password' => 'required|min:8|confirmed'
         ];
     }
 }

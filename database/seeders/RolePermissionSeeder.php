@@ -97,6 +97,7 @@ class RolePermissionSeeder extends Seeder
 
         $admin = User::firstOrCreate([
             'email' => 'admin@gmail.com',
+            'phone' => '0933222111'
         ], [
             'name' => 'System Admin',
             'password' => bcrypt('admin123'),
@@ -136,6 +137,7 @@ class RolePermissionSeeder extends Seeder
 
             $manager = User::firstOrCreate([
                 'email' => $email,
+                'phone' => '0933222111'
             ], [
                 'name' => 'Manager of ' . $province,
                 'password' => bcrypt('manager123'),

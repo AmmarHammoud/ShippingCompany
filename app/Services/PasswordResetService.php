@@ -15,10 +15,8 @@ class PasswordResetService
     public function forgotPassword(Request $request)
     {
         $data = $request->validated();
-
         // Delete all old codes that the user has sent before.
         PasswordResetCode::where('email', $request['email'])->delete();
-
         // Generate random code
         $data['code'] = mt_rand(100000, 999999);
 
