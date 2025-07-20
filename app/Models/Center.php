@@ -17,4 +17,8 @@ class Center extends Model
     {
         return $this->hasMany(User::class);
     }
+    public function manager()
+    {
+        return $this->hasOne(User::class, 'center_id')->where('role', 'center_manager');
+    }
 }

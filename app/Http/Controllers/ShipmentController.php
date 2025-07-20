@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ShipmentDeliveredBroadcast;
 use App\Http\Requests\ShipmentUpdateRequest;
 use App\Http\Requests\StoreRecipientRequest;
 use App\Http\Requests\StoreShipmentDetailsRequest;
+use App\Http\Requests\StoreShipmentRatingRequest;
 use App\Models\Shipment;
 use App\Services\ShipmentCreationService;
 use Illuminate\Http\Request;
@@ -14,6 +16,12 @@ use Illuminate\Support\Facades\Session;
 
 class ShipmentController extends Controller
 {
+    protected ShipmentCreationService $shipmentRatingService;
+
+    public function __construct(ShipmentCreationService $shipmentRatingService)
+    {
+        $this->shipmentRatingService = $shipmentRatingService;
+    }
     public function storeRecipient(StoreRecipientRequest $request)
     {
         $recipientData = $request->validated();
@@ -139,15 +147,16 @@ return response()->json([
     {
         try {
             $shipment = ShipmentCreationService::confirmByBarcode($barcode);
+            broadcast(new ShipmentDeliveredBroadcast($shipment));
 
             return response()->json([
                 'message' => 'Shipment receipt confirmed',
                 'shipment_id' => $shipment->id,
-                'recipient_name' => $shipment->recipient_name,
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['error' => 'shipment not found '], 404);
         }
+
     }
     public function update(ShipmentUpdateRequest $request, $id)
     {
@@ -171,6 +180,21 @@ return response()->json([
         'message' => 'Shipment cancelled successfully.',
         'shipment' => $shipment
     ]);
-}
 
 }
+
+    public function rating(StoreShipmentRatingRequest $request)
+    {
+        try {
+            $rating = $this->shipmentRatingService->store($request->validated());
+
+            return response()->json([
+                'message' => 'Shipment rated successfully.',
+                'data' => $rating
+            ], 201);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
+}}

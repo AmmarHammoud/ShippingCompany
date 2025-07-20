@@ -8,6 +8,7 @@ use App\Http\Controllers\ShipmentDriverOfferController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SuperAdminController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -35,7 +36,32 @@ Route::put('update/{id}', [ShipmentController::class, 'update']);
 Route::get('shipments/{id}', [ShipmentController::class, 'show']);
 Route::get('my-shipments', [ShipmentController::class, 'myShipments']);
 
+    //rating the shipment by recipient
+Route::post('shipment/ratings', [ShipmentController::class, 'rating']);
+
 });
+
+
+//super admin
+
+Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
+    Route::post('addmanger', [SuperAdminController::class, 'store']);
+    Route::put('center-managers/{id}', [SuperAdminController::class, 'update']);
+    Route::delete('center-managers/{id}', [SuperAdminController::class, 'destroy']);
+    
+    Route::get('center-managers', [SuperAdminController::class, 'index']);
+
+    Route::post('storeCenter', [SuperAdminController::class, 'storeCenter']);
+    Route::put('updateCenter/{id}', [SuperAdminController::class, 'updateCenter']);
+    Route::delete('deleteCenter/{id}', [SuperAdminController::class, 'deleteCenter']);
+
+
+    Route::get('dashboard/performance-kpis', [SuperAdminController::class, 'performanceKPIs']);
+
+
+
+});
+
 
 Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDelivery']);
 
