@@ -56,6 +56,7 @@ return new class extends Migration
                 'delivered',             // تم التسليم
                 'cancelled',
             ])->default('pending');
+            $table->timestamp('delivered_at')->nullable();
             $table->timestamps();
         });
     }

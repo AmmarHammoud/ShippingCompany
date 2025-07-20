@@ -30,7 +30,8 @@ class Shipment extends Model
         'invoice_number',
         'barcode',
         'status',
-        'qr_code_url'
+        'qr_code_url',
+        'delivered_at'
     ];
 
     public function client()
@@ -59,9 +60,8 @@ class Shipment extends Model
     {
         return $this->belongsTo(User::class, 'recipient_id');
     }
-
-    public function ratings(): HasMany
+    public function rating()
     {
-        return $this->hasMany(Rating::class);
+        return $this->hasOne(Rating::class);
     }
 }
