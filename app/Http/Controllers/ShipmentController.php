@@ -183,18 +183,4 @@ return response()->json([
 
 }
 
-    public function rating(StoreShipmentRatingRequest $request)
-    {
-        try {
-            $rating = $this->shipmentRatingService->store($request->validated());
-
-            return response()->json([
-                'message' => 'Shipment rated successfully.',
-                'data' => $rating
-            ], 201);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 400);
-        }
-}}
+}

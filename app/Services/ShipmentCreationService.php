@@ -233,30 +233,4 @@ class ShipmentCreationService
         broadcast(new ShipmentHandedToCenter($shipment));
     }
 
-
-
-    public function store(array $data): ShipmentRatings
-    {
-        $shipment = Shipment::findOrFail($data['shipment_id']);
-
-        if ($shipment->recipient_id !== Auth::id()) {
-            throw new \Exception('You are not authorized to rate this shipment.');
-        }
-        if ($shipment->status !== 'delivered') {
-            throw new \Exception('Shipment not delivered yet.');
-        }
-
-
-        if (shipmentratings::where('shipment_id', $shipment->id)->exists()) {
-            throw new \Exception('Shipment already rated.');
-        }
-
-        return ShipmentRatings::create([
-            'shipment_id' => $shipment->id,
-            'recipient_id' => Auth::id(),
-            'rating' => $data['rating'],
-            'comment' => $data['comment'] ?? null,
-        ]);
-
-}
 }
