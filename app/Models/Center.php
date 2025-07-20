@@ -17,4 +17,12 @@ class Center extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function drivers() {
+        return $this->hasMany(User::class)->where('role', 'driver');
+    }
+
+    public function manager() {
+        return $this->hasOne(User::class)->where('role', 'centerManager');
+    }
 }

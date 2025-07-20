@@ -60,5 +60,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function shipmentOffers()
     {
         return $this->hasMany(ShipmentDriverOffer::class, 'driver_id');
-}
+    }
+    
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function isCenterManager(): bool
+    {
+        return $this->role === 'center_manager';
+    }
 }

@@ -142,14 +142,14 @@ class AuthService {
         foreach ($user->roles as $role) {
             $roles[] = $role->name;
         }
-        unset($user['roles']);
+        //unset($user['roles']);
         $user['roles'] = $roles;
 
         $permissions = [];
         foreach ($user->permissions as $permission) {
             $permissions[] = $permission->name;
         }
-        unset($user['permissions']);
+        //unset($user['permissions']);
         $user['permissions'] = $permissions;
 
         return $user;

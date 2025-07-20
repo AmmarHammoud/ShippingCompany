@@ -28,12 +28,27 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
 
-Route::post('recipient', [ShipmentController::class, 'storeRecipient']);
-Route::post('details', [ShipmentController::class, 'storeDetails']);
-Route::post('cancel/{id}', [ShipmentController::class, 'cancel']);
-Route::put('update/{id}', [ShipmentController::class, 'update']);
-Route::get('shipments/{id}', [ShipmentController::class, 'show']);
-Route::get('my-shipments', [ShipmentController::class, 'myShipments']);
+    Route::post('recipient', [ShipmentController::class, 'storeRecipient']);
+    Route::post('details', [ShipmentController::class, 'storeDetails']);
+    Route::post('cancel/{id}', [ShipmentController::class, 'cancel']);
+    Route::put('update/{id}', [ShipmentController::class, 'update']);
+    Route::get('shipments/{id}', [ShipmentController::class, 'show']);
+    Route::get('my-shipments', [ShipmentController::class, 'myShipments']);
+
+    Route::controller(RatingController::class)->group(function () {
+        Route::post('/shipments/rate', 'store');
+        Route::get('/ratings/{id}', 'show');
+        Route::put('/ratings/{id}', 'update');
+        Route::delete('/ratings/{id}', 'destroy');
+    });
+
+    Route::controller(ReportController::class)->group(function() {
+        Route::post('/reports', 'store');
+        Route::get('/reports/{report}', 'show');
+        Route::put('/reports/{report}', 'update');
+        Route::delete('/reports/{report}', 'destroy');
+        Route::get('/reports', 'index');
+    });
 
 });
 
@@ -41,10 +56,10 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
 
 
 Route::middleware(['auth:sanctum', 'role:driver'])->group(function(){
-Route::post('offers/{shipment}/accept', [ShipmentDriverOfferController::class, 'acceptOffer']);
-Route::post('offers/{shipment}/reject', [ShipmentDriverOfferController::class, 'rejectOffer']);
-Route::get('offers', [ShipmentDriverOfferController::class, 'offersByStatus']);
- Route::post('shipments/{id}/hand-over-to-center', [ShipmentDriverOfferController::class, 'confirmHandOverToCenter']);
+    Route::post('offers/{shipment}/accept', [ShipmentDriverOfferController::class, 'acceptOffer']);
+    Route::post('offers/{shipment}/reject', [ShipmentDriverOfferController::class, 'rejectOffer']);
+    Route::get('offers', [ShipmentDriverOfferController::class, 'offersByStatus']);
+    Route::post('shipments/{id}/hand-over-to-center', [ShipmentDriverOfferController::class, 'confirmHandOverToCenter']);
 });
 
 Route::controller(AuthController::class)->group(function () {

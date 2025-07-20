@@ -11,17 +11,17 @@ use Throwable;
 
 class AuthController extends Controller
 {
-    private AuthService $userService;
+    private AuthService $authService;
 
-    public function __construct(AuthService $userService)
+    public function __construct(AuthService $authService)
     {
-        $this->userService = $userService;
+        $this->authService = $authService;
     }
 
     public function signUp(SignUpRequest $signUpRequest)
     {
         try {
-            $data = $this->userService->signup($signUpRequest);
+            $data = $this->authService->signup($signUpRequest);
             return Response::success($data['message'], $data['user']);
         } catch (Throwable $throwable) {
             $message = $throwable->getMessage();
@@ -32,7 +32,7 @@ class AuthController extends Controller
     public function signIn(SignInRequest $signInRequest)
     {
         try {
-            $data = $this->userService->signin($signInRequest);
+            $data = $this->authService->signin($signInRequest);
             return Response::success($data['message'], $data['user']);
         } catch (Throwable $th) {
             $message = $th->getMessage();
@@ -43,7 +43,7 @@ class AuthController extends Controller
     public function signOut()
     {
         try {
-            $data = $this->userService->signout();
+            $data = $this->authService->signout();
             return Response::success($data['message']);
         } catch (Throwable $th) {
             $message = $th->getMessage();
@@ -54,7 +54,16 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         try {
-            $data = $this->authServic->updateProfile($request);
+            $data = $this->authService->updateProfile($request);
+            return Response::success($data['message'], $data['profile']);
+        } catch (Throwable $throwable) {
+            return Response::error($throwable->getMessage(), 404);
+        }
+    }
+    public function createDriverAccount(Request $request)
+    {
+        try {
+            $data = $this->authService->createDriverAccount($request);
             return Response::success($data['message'], $data['profile']);
         } catch (Throwable $throwable) {
             return Response::error($throwable->getMessage(), 404);

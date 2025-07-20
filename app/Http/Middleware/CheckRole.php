@@ -26,7 +26,7 @@ class CheckRole
                 'success' => false,
                 'message' => 'غير مصرح لك بالوصول',
                 'required_role' => $role,
-                'your_roles' => $user->getRoleNames()
+                'your_roles' => $user->role
             ], 403);
         }
 

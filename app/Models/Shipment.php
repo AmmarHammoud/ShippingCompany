@@ -59,4 +59,9 @@ class Shipment extends Model
     {
         return $this->belongsTo(User::class, 'recipient_id');
     }
+
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
+    }
 }
