@@ -8,6 +8,8 @@ use App\Http\Controllers\ShipmentDriverOfferController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RatingController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ReportController;
@@ -34,7 +36,7 @@ Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
     Route::post('details', [ShipmentController::class, 'storeDetails']);
     Route::post('cancel/{id}', [ShipmentController::class, 'cancel']);
     Route::put('update/{id}', [ShipmentController::class, 'update']);
-    Route::get('shipments/{id}', [ShipmentController::class, 'show']);
+    Route::get('shipmentshow/{id}', [ShipmentController::class, 'show']);
     Route::get('my-shipments', [ShipmentController::class, 'myShipments']);
 
     Route::controller(RatingController::class)->group(function () {
@@ -59,17 +61,17 @@ Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
 
 Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::post('addmanger', [SuperAdminController::class, 'store']);
-    Route::put('center-managers/{id}', [SuperAdminController::class, 'update']);
-    Route::delete('center-managers/{id}', [SuperAdminController::class, 'destroy']);
-    
-    Route::get('center-managers', [SuperAdminController::class, 'index']);
+    Route::post('updatemanager/{id}', [SuperAdminController::class, 'update']);
+    Route::delete('deletemanager/{id}', [SuperAdminController::class, 'destroy']);
+
+    Route::get('centers', [SuperAdminController::class, 'index']);
 
     Route::post('storeCenter', [SuperAdminController::class, 'storeCenter']);
-    Route::put('updateCenter/{id}', [SuperAdminController::class, 'updateCenter']);
+    Route::Post('updateCenter/{id}', [SuperAdminController::class, 'updateCenter']);
     Route::delete('deleteCenter/{id}', [SuperAdminController::class, 'deleteCenter']);
 
 
-    Route::get('dashboard/performance-kpis', [SuperAdminController::class, 'performanceKPIs']);
+    Route::get('performance-kpis', [SuperAdminController::class, 'performanceKPIs']);
 
 
 

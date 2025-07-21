@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Center;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
@@ -43,7 +44,15 @@ class SuperAdminService
             $data['password'] = Hash::make($data['password']);
         }
 
-        $user->update($data);
+        $user->update([
+            'name'        => $data['name'] ?? $user->name,
+            'email'       => $data['email'] ?? $user->email,
+            'phone'       => $data['phone'] ?? $user->phone,
+            'password'    => $data['password'] ?? $user->password,
+            'center_id'   => $data['center_id'] ?? $user->center_id,
+            'is_approved' => $data['is_approved'] ?? $user->is_approved,
+            'active'      => $data['active'] ?? $user->active,
+        ]);
 
         return $user;
     }
@@ -51,14 +60,12 @@ class SuperAdminService
     public static function delete(User $user): void
     {
         if ($user->role !== 'center_manager') {
-            throw new \Exception("This user is not a center manager.");
-        }
+            throw ValidationException::withMessages([
+                'name' => 'this user is not center manger',])        ;}
 
         $user->delete();
     }
 
-
-    
     public function createCenter(array $data): Center
     {
         if (Center::where('name', $data['name'])->exists()) {
@@ -80,43 +87,50 @@ class SuperAdminService
         return Center::create($data);
     }
 
-    public function updateCenter(int $id, array $data): Center
-    {
+   public function updateCenter(int $id, array $data): Center
+{
+    try {
         $center = Center::findOrFail($id);
+    } catch (ModelNotFoundException $e) {
+        throw ValidationException::withMessages([
+            'id' => "Center with ID {$id} not found.",
+        ]);
+    }
 
-        if (isset($data['latitude']) && isset($data['longitude'])) {
-            $exists = Center::where('id', '!=', $id)
-                ->where('latitude', $data['latitude'])
-                ->where('longitude', $data['longitude'])
-                ->exists();
+    if (isset($data['latitude']) && isset($data['longitude'])) {
+        $exists = Center::where('id', '!=', $id)
+            ->where('latitude', $data['latitude'])
+            ->where('longitude', $data['longitude'])
+            ->exists();
 
-            if ($exists) {
-                throw ValidationException::withMessages([
-                    'coordinates' => 'A center with these coordinates already exists.',
-                ]);
-            }
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'coordinates' => 'A center with these coordinates already exists.',
+            ]);
         }
+    }
 
-        if (isset($data['name'])) {
-            $nameExists = Center::where('id', '!=', $id)
-                ->where('name', $data['name'])
-                ->exists();
+        $center->update([
+            'name' => $data['name'] ?? $center->name,
+            'latitude' => $data['latitude'] ?? $center->latitude,
+            'longitude' => $data['longitude'] ?? $center->longitude,
+        ]);
 
-            if ($nameExists) {
-                throw ValidationException::withMessages([
-                    'name' => 'Another center with this name already exists.',
-                ]);
-            }
-        }
-
-        $center->update($data);
         return $center;
-    }
+}
 
-    public function deleteCenter(int $id): bool
+
+
+
+    public function deleteCenter(int $id)
     {
         $center = Center::findOrFail($id);
-        return $center->delete();
-    }
+        if (! $center) {
+            throw ValidationException::withMessages([
+                'center' => ['Center not found.']
+            ]);
+        }
 
+        $center->delete();
+    }
 }

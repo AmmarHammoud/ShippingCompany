@@ -17,7 +17,7 @@ class RatingController extends Controller
     {
         $this->ratingService = $ratingService;
     }
-    
+
     public function store(StoreRatingRequest $request)
     {
         try {

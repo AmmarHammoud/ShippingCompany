@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Rating;
 use App\Models\Shipment;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 class RatingService
@@ -11,7 +12,7 @@ class RatingService
     public function createRating(array $data): Rating
     {
         $shipment = Shipment::findOrFail($data['shipment_id']);
-        
+
         // Verify client owns the shipment
         if ($shipment->client_id !== Auth::id()) {
             abort(403, 'You can only rate your own shipments');
@@ -36,7 +37,7 @@ class RatingService
             'comment' => $data['comment'] ?? null
         ]);
     }
-    
+
     public function getRatingDetails(int $ratingId): Rating
     {
         $rating = Rating::with(['shipment', 'user'])->find($ratingId);

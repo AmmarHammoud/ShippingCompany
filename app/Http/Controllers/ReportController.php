@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Report;
+use App\Models\Shipment;
 use Illuminate\Http\Request;
 use App\Services\ReportService;
 use App\Http\Requests\StoreReportRequest;
 use App\Http\Requests\UpdateReportRequest;
 use App\http\Responses\Response;
-use App\Models\Shipment;
 use App\Policies\ReportPolicy;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use App\Models\Report;
 
 class ReportController extends Controller
 {
@@ -21,7 +21,7 @@ use AuthorizesRequests;
     {
         $this->reportService = $reportService;
     }
-    
+
     public function store(StoreReportRequest $request)
     {
         try {
@@ -44,7 +44,7 @@ use AuthorizesRequests;
             return Response::error($th->getMessage(), $th->getCode());
         }
     }
-    
+
     public function show(Report $report)
     {
         try {
