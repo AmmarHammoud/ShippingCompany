@@ -14,7 +14,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::middleware(['auth:sanctum', 'role:dr'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
     Route::get('/noway', function (){
         return response()->json('fdsfs');
     });

@@ -21,14 +21,12 @@ use Spatie\Permission\Models\Role;
 class AuthService {
     public function signup(Request $request): array
     {
-
+        
         $request->validated();
         //$image = $this->fileUploader->storeFile($request, 'image');
         $user = User::query()->create([
             'name' => $request->name,
             'email' => $request['email'],
-
-
             'phone' => $request['phone'],
             'password' => Hash::make($request['password'])
         ]);
@@ -48,7 +46,7 @@ class AuthService {
             VerificationCode::create($data);
             Mail::to($user['email'])->send(new VerificationCodeMail($verification_code));
         }
-
+        
         $role = Role::query()->where('name', $role1)->first();
         $user->assignRole($role);
         $permissions = $role->permissions()->pluck('name')->toArray();
@@ -142,14 +140,14 @@ class AuthService {
         foreach ($user->roles as $role) {
             $roles[] = $role->name;
         }
-        //unset($user['roles']);
+        unset($user['roles']);
         $user['roles'] = $roles;
 
         $permissions = [];
         foreach ($user->permissions as $permission) {
             $permissions[] = $permission->name;
         }
-        //unset($user['permissions']);
+        unset($user['permissions']);
         $user['permissions'] = $permissions;
 
         return $user;

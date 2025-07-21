@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Center;
 use App\Models\Shipment;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use database\factories\ShipmentFactory;
@@ -17,6 +18,18 @@ class ShipmentSeeder extends Seeder
         $recipients = User::factory(5)->create(['role' => 'client']);
         $drivers = User::factory(2)->create(['role' => 'driver']);
         $centers = Center::all();
+        foreach($clients as $client){
+            $client->assignRole('client');
+        }
+
+        foreach($recipients as $recipient){
+            $recipient->assignRole('client');
+        }
+
+        foreach($drivers as $driver){
+            $driver->assignRole('driver');
+        }
+
         // Create 5 shipments
         Shipment::factory()->count(5)->create([
             'client_id' => fn() => $clients->random()->id,
