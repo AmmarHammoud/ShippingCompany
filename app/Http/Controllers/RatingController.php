@@ -14,7 +14,7 @@ class RatingController extends Controller
     {
         $this->ratingService = $ratingService;
     }
-    
+
     public function store(StoreRatingRequest $request)
     {
         try {
@@ -30,7 +30,7 @@ class RatingController extends Controller
         try {
             $rating = $this->ratingService->getRatingDetails($id);
             return $this->success(
-                'Rating details retrieved', 
+                'Rating details retrieved',
                 new RatingResource($rating)
             );
         } catch (Throwable $th) {
@@ -43,7 +43,7 @@ class RatingController extends Controller
         try {
             $rating = $this->ratingService->updateRating($id, $request->validated());
             return $this->success(
-                'Rating updated successfully', 
+                'Rating updated successfully',
                 new RatingResource($rating)
             );
         } catch (Throwable $th) {

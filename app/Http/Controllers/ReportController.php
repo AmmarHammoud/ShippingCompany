@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreReportRequest;
+use App\Models\Report;
+use App\Models\Shipment;
 use Illuminate\Http\Request;
 use app\Services\ReportService;
+use Throwable;
 
 class ReportController extends Controller
 {
@@ -14,7 +18,7 @@ class ReportController extends Controller
     {
         $this->reportService = $reportService;
     }
-    
+
     public function store(StoreReportRequest $request)
     {
         try {
@@ -22,7 +26,7 @@ class ReportController extends Controller
             $this->authorize('create', [Report::class, $shipment]);
             $report = $this->reportService->createReport($request->validated());
             return $this->success('Report submitted successfully', $report);
-        } catch (Throwable $th) {
+        } catch (Throwable$th) {
             return $this->error($th->getMessage(), $th->getCode());
         }
     }
@@ -37,7 +41,7 @@ class ReportController extends Controller
             return $this->error($th->getMessage(), $th->getCode());
         }
     }
-    
+
     public function show(Report $report)
     {
         try {
@@ -55,7 +59,7 @@ class ReportController extends Controller
             $updatedReport = $this->reportService->updateReport($report, $request);
             return $this->success('Report updated successfully', $updatedReport);
         } catch (Throwable $th) {
-            return $this->error($th->getMessage(), $th->getCode());
+            return $this->err($th->getMessage(), $th->getCode());
         }
     }
 

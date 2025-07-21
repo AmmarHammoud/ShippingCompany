@@ -61,8 +61,8 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(ShipmentDriverOffer::class, 'driver_id');
     }
-    
-    public function ratings(): HasMany
+
+    public function ratings()
     {
         return $this->hasMany(Rating::class);
     }

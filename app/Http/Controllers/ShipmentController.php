@@ -9,6 +9,7 @@ use App\Http\Requests\StoreShipmentDetailsRequest;
 use App\Http\Requests\StoreShipmentRatingRequest;
 use App\Models\Shipment;
 use App\Services\ShipmentCreationService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -102,46 +103,108 @@ class ShipmentController extends Controller
 
             return response()->json([
                 'shipment' => [
-                    $shipment->toArray(),
-                    'sender_name' => $shipment->client->name,
-                    'recipient_name' =>$shipment->recipient->recipient_name ]          ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'Shipment not found.'
-            ], 404);
-        }}
+                    'id' => $shipment->id,
+                    'client_id' => $shipment->client_id,
+                    'center_from_id' => $shipment->center_from_id,
+                    'center_to_id' => $shipment->center_to_id,
+                    'pickup_driver_id' => $shipment->pickup_driver_id,
+                    'delivery_driver_id' => $shipment->delivery_driver_id,
+                    'sender_lat' => $shipment->sender_lat,
+                    'sender_lng' => $shipment->sender_lng,
+                    'recipient_id' => $shipment->recipient_id,
+                    'recipient_location' => $shipment->recipient_location,
+                    'recipient_lat' => $shipment->recipient_lat,
+                    'recipient_lng' => $shipment->recipient_lng,
+                    'shipment_type' => $shipment->shipment_type,
+                    'number_of_pieces' => $shipment->number_of_pieces,
+                    'weight' => $shipment->weight,
+                    'delivery_price' => $shipment->delivery_price,
+                    'product_value' => $shipment->product_value,
+                    'total_amount' => $shipment->total_amount,
+                    'invoice_number' => $shipment->invoice_number,
+                    'barcode' => $shipment->barcode,
+                    'status' => $shipment->status,
+                    'qr_code_url' => $shipment->qr_code_url,
+                    'delivered_at' => $shipment->delivered_at,
+                    'created_at' => $shipment->created_at,
+                    'updated_at' => $shipment->updated_at,
+
+                    // بيانات المرسل
+                    'sender' => [
+                        'id' => $shipment->client?->id,
+                        'name' => $shipment->client?->name,
+                        'email' => $shipment->client?->email,
+                        'phone' => $shipment->client?->phone,
+                        'lat' => $shipment->sender_lat,
+                        'lng' => $shipment->sender_lng,
+                    ],
+
+                    'recipient' => [
+                        'id' => $shipment->recipient?->id,
+                        'name' => $shipment->recipient?->name,
+                        'email' => $shipment->recipient?->email,
+                        'phone' => $shipment->recipient?->phone,
+                        'location' => $shipment->recipient_location,
+                        'lat' => $shipment->recipient_lat,
+                        'lng' => $shipment->recipient_lng,
+                    ]
+                ]
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Shipment not found.'], 404);
+        }
+
+}
+Public function myShipments()
+{
+$client = Auth::user();
 
 
-    public function myShipments(Request $request){
+$shipments = ShipmentCreationService::getShipmentsByClient($client);
 
-        $client = Auth::user();
+        $data = $shipments->map(function ($shipment) {
+            return [
+                'id' => $shipment->id,
+                'invoice_number' => $shipment->invoice_number,
+                'barcode' => $shipment->barcode,
+                'status' => $shipment->status,
+                'qr_code_url' => $shipment->qr_code_url,
+                'shipment_type' => $shipment->shipment_type,
+                'number_of_pieces' => $shipment->number_of_pieces,
+                'weight' => $shipment->weight,
+                'product_value' => $shipment->product_value,
+                'delivery_price' => $shipment->delivery_price,
+                'total_amount' => $shipment->total_amount,
+                'delivered_at' => $shipment->delivered_at,
+                'created_at' => $shipment->created_at,
+                'updated_at' => $shipment->updated_at,
+                'sender' => [
+                    'id' => $shipment->client_id,
+                    'name' => optional($shipment->client)->name,
+                    'lat' => $shipment->sender_lat,
+                    'lng' => $shipment->sender_lng,
+                ],
+                'recipient' => [
+                    'id' => $shipment->recipient_id,
+                    'name' => optional($shipment->recipient)->name ?? '(غير معروف)',
+                    'phone' => optional($shipment->recipient)->phone,
+                    'location' => $shipment->recipient_location,
+                    'lat' => $shipment->recipient_lat,
+                    'lng' => $shipment->recipient_lng,
+                ],
+                'center_from' => [
+                    'id' => $shipment->centerFrom?->id,
+                    'name' => $shipment->centerFrom?->name,
+                ],
+                'center_to' => [
+                    'id' => $shipment->centerTo?->id,
+                    'name' => $shipment->centerTo?->name,
+                ],
+            ];
+        });
 
-     $shipments = ShipmentCreationService::getShipmentsByClient($client);
-
-return response()->json([
-    'shipments' => $shipments->map(function ($shipment) {
-        return [
-            'id' => $shipment->id,
-            'barcode' => $shipment->barcode,
-            'status' => $shipment->status,
-            'shipment_type' => $shipment->shipment_type,
-            'product_value' => $shipment->product_value,
-            'delivery_price' => $shipment->delivery_price,
-            'total_amount' => $shipment->total_amount,
-            'created_at' => $shipment->created_at->toDateTimeString(),
-
-            'recipient' => [
-                'id'       => $shipment->recipient?->id,
-                'name'     => $shipment->recipient?->name,
-                'location' => $shipment->recipient_location,
-                'lat'      => $shipment->recipient_lat,
-                'lng'      => $shipment->recipient_lng,
-            ],
-            'center_from' => $shipment->centerFrom?->name,
-            'center_to'   => $shipment->centerTo?->name,
-        ];
-    }),
-]);}
+        return response()->json(['shipments' => $data]);
+    }
 
     public function confirmDelivery($barcode)
     {
@@ -172,15 +235,19 @@ return response()->json([
         ]);}
 
 
-      public function cancel($id)
-{
-    $shipment = ShipmentCreationService::cancel($id);
+    public function cancel($id)
+    {
+        try {
+            $shipment = ShipmentCreationService::cancel($id);
 
-    return response()->json([
-        'message' => 'Shipment cancelled successfully.',
-        'shipment' => $shipment
-    ]);
-
-}
+            return response()->json([
+                'message' => 'Shipment cancelled successfully.',
+                'shipment' => $shipment
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Shipment not found '
+            ], 404);
+        }}
 
 }
