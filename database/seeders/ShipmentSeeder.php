@@ -14,22 +14,18 @@ class ShipmentSeeder extends Seeder
     public function run()
     {
         // Create necessary relationships first
-        $clients = User::factory(3)->create(['role' => 'client']);
-        $recipients = User::factory(5)->create(['role' => 'client']);
-        $drivers = User::factory(2)->create(['role' => 'driver']);
+
+        $clients = User::factory(3)->create(['role' => 'client'])
+            ->each(fn ($user) => $user->assignRole('client'));
+
+        $recipients = User::factory(5)->create(['role' => 'client'])
+            ->each(fn ($user) => $user->assignRole('client')); 
+
+        $drivers = User::factory(2)->create(['role' => 'driver'])
+            ->each(fn ($user) => $user->assignRole('driver'));
+
         $centers = Center::all();
-        foreach($clients as $client){
-            $client->assignRole('client');
-        }
-
-        foreach($recipients as $recipient){
-            $recipient->assignRole('client');
-        }
-
-        foreach($drivers as $driver){
-            $driver->assignRole('driver');
-        }
-
+        
         // Create 5 shipments
         Shipment::factory()->count(5)->create([
             'client_id' => fn() => $clients->random()->id,
