@@ -29,5 +29,12 @@ RUN composer clear-cache && chmod -R 775 /app
 # Run Composer install
 RUN COMPOSER_CACHE_DIR="/tmp/composer-cache" composer install --no-interaction --prefer-dist --optimize-autoloader
 
+# Copy custom entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Expose Laravel default port
 EXPOSE 8181
-CMD php artisan migrate && php artisan serve --host=0.0.0.0 --port=8181
+
+# Use JSON CMD syntax for signal-safe process handling
+CMD ["docker-entrypoint.sh"]
