@@ -51,9 +51,6 @@ Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
         Route::get('/reports', 'index');
     });
 
-    //rating the shipment by recipient
-Route::post('shipment/ratings', [ShipmentController::class, 'rating']);
-
 });
 
 

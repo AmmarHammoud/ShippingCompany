@@ -25,7 +25,17 @@ class ShipmentFactory extends Factory
             'total_amount' => function (array $attributes) {
                 return $attributes['delivery_price'] + $attributes['product_value'];
             },
-            'status' => $this->faker->randomElement(['pending', 'in_transit', 'out_for_delivery', 'delivered']),
+            'status' => $this->faker->randomElement([
+                'pending',               
+                'offered_pickup_driver', 
+                'picked_up',             
+                'in_transit_between_centers', 
+                'arrived_at_destination_center', 
+                'offered_delivery_driver', 
+                'out_for_delivery',      
+                'delivered',             
+                'cancelled',
+            ]),
         ];
     }
 }
