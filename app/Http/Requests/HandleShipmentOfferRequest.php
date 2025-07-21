@@ -8,7 +8,7 @@ class HandleShipmentOfferRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check()user()->role === 'driver';
+        return Auth::user()->role === 'driver';
     }
 
     public function rules(): array

@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Rating;
 use App\Models\Shipment;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 class RatingService
 {
     public function createRating(array $data): Rating
@@ -18,7 +18,7 @@ class RatingService
         }
 
         // Check if shipment is deliverable
-        if (!$shipment->is_delivered) {
+        if ($shipment->status != 'delivered') {
             abort(422, 'Shipment must be delivered before rating');
         }
 
@@ -39,12 +39,10 @@ class RatingService
     
     public function getRatingDetails(int $ratingId): Rating
     {
-        $rating = Rating::with(['shipment', 'user'])
-            ->where('user_id', Auth::id())
-            ->find($ratingId);
-
+        $rating = Rating::with(['shipment', 'user'])->find($ratingId);
+        
         if (!$rating) {
-            throw new ModelNotFoundException('Rating not found or access denied', 404);
+            throw new ModelNotFoundException('Rating not found', 404);
         }
 
         return $rating;
@@ -58,7 +56,7 @@ class RatingService
         if (!$rating) {
             throw new ModelNotFoundException('Rating not found or access denied', 404);
         }
-
+        
         // Only allow updating rating and comment
         $rating->update([
             'rating' => $data['rating'] ?? $rating->rating,
@@ -71,8 +69,7 @@ class RatingService
     public function deleteRating(int $ratingId): bool
     {
         $rating = Rating::where('user_id', Auth::id())
-            ->find($ratingId);
-
+            ->where('id', $ratingId)->first();
         if (!$rating) {
             throw new ModelNotFoundException('Rating not found or access denied', 404);
         }

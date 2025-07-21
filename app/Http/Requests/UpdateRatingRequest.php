@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreRatingRequest extends FormRequest
+class UpdateRatingRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -14,11 +14,15 @@ class StoreRatingRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
-            'shipment_id' => 'required|exists:shipments,id',
-            'rating' => 'required|min:1|max:5',
+            'rating' => 'sometimes|min:1|max:5',
             'comment' => 'nullable|string|max:500'
         ];
     }
