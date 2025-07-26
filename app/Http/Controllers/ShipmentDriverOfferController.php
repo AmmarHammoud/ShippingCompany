@@ -44,6 +44,32 @@ class ShipmentDriverOfferController extends Controller
             return response()->json(['error' => $e->getMessage()], 409);
         }
     }
+    public function confirmPickupByDriver($barcode)
+    {
+        $driver = Auth::user();
+
+        if (! $driver) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        try {
+            $shipment = ShipmentDriverOfferService::confirmPickupByBarcode($barcode, $driver);
+
+            return response()->json([
+                'message' => 'Shipment pickup confirmed by driver.',
+                'shipment_id' => $shipment->id,
+                'status' => $shipment->status,
+
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Internal server error',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
+    }
     public function confirmHandOverToCenter(Request $request, $shipmentId)
     {
         $shipment = ShipmentDriverOffer::findOrFail($shipmentId);

@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreRatingRequest;
 use Illuminate\Http\Request;
 use App\Http\Resources\RatingResource;
+use App\Services\RatingService;
+use Throwable;
 
 class RatingController extends Controller
 {

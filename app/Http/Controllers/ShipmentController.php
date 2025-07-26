@@ -90,7 +90,8 @@ class ShipmentController extends Controller
                     'email' => $shipment->client?->email,
                 ],
             ],
-            'confirmation_url' => url("/shipments/{$shipment->barcode}/confirm")
+            'confirmation_url' => url("/shipments/{$shipment->barcode}/confirm"),
+            'driver_confirmation_url' => url("/shipments/{$shipment->barcode}/confirm-pickup")
 
         ]);
     }
