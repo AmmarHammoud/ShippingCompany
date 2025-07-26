@@ -26,8 +26,7 @@ class ShipmentSeeder extends Seeder
 
         $centers = Center::all();
         
-        // Create 5 shipments
-        Shipment::factory()->count(5)->create([
+        $shipments = Shipment::factory()->count(15)->create([
             'client_id' => fn() => $clients->random()->id,
             'center_from_id' => fn() => $centers->random()->id,
             'center_to_id' => fn() => $centers->random()->id,
@@ -38,5 +37,9 @@ class ShipmentSeeder extends Seeder
             'barcode' => fn() => 'BRC-' . Str::upper(Str::random(12)),
             'qr_code_url' => fn() => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . Str::uuid(),
         ]);
+        foreach($shipments as $shipment) {
+            if($shipment->status == 'delivered') $shipment->delivered_at = now();
+            $shipment->save();
+        }
     }
 }

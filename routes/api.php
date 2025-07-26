@@ -11,7 +11,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SuperAdminController;
-
+use App\Http\Controllers\RatingController;
+use App\Http\Controllers\ReportController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -36,16 +37,16 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
     Route::get('my-shipments', [ShipmentController::class, 'myShipments']);
 
     Route::controller(RatingController::class)->group(function () {
-        Route::post('/shipments/rate', 'store');
+        Route::post('/ratings', 'store');
         Route::get('/ratings/{id}', 'show');
-        Route::put('/ratings/{id}', 'update');
+        Route::post('/ratings/{id}', 'update');
         Route::delete('/ratings/{id}', 'destroy');
     });
 
     Route::controller(ReportController::class)->group(function() {
         Route::post('/reports', 'store');
         Route::get('/reports/{report}', 'show');
-        Route::put('/reports/{report}', 'update');
+        Route::post('/reports/{report}', 'update');
         Route::delete('/reports/{report}', 'destroy');
         Route::get('/reports', 'index');
     });

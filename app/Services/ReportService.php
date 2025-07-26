@@ -47,8 +47,8 @@ class ReportService
         if (isset($data['message'])) {
             $updates['message'] = $data['message'];
         }
-
-        if (isset($data['status']) && Auth::user()->can('updateStatus', Report::class)) {
+    
+        if (isset($data['status']) && !Auth::user()->isClient() && !Auth::user()->isDriver()) {
             $updates['status'] = $data['status'];
         }
 

@@ -76,4 +76,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === 'center_manager';
     }
+    public function isDriver(): bool
+    {
+        return $this->role === 'driver';
+    }
+    public function isClient(): bool
+    {
+        return $this->role === 'client';
+    }
 }

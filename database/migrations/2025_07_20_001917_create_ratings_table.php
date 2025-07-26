@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('ratings', function (Blueprint $table) {
         $table->id();
-        $table->foreignId('shipment_id')->constrained()->cascadeOnDelete();
-        $table->foreignId('user_id')->constrained()->cascadeOnDelete(); 
-        $table->unsignedTinyInteger('rating')->comment('1-5 scale');
+        $table->foreignId('shipment_id')->constrained()->cascadeOnDelete()->casacadeOnUpdate();
+        $table->foreignId('user_id')->constrained()->cascadeOnDelete()->casacadeOnUpdate(); 
+        $table->Float('rating')->comment('1-5');
         $table->text('comment')->nullable();
         $table->timestamps();
         
