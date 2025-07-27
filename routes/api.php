@@ -11,8 +11,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SuperAdminController;
-use App\Http\Controllers\RatingController;
-use App\Http\Controllers\ReportController;
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');

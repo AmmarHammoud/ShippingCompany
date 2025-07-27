@@ -8,6 +8,7 @@ use App\Http\Resources\RatingResource;
 use App\Services\RatingService;
 use App\Http\Requests\UpdateRatingRequest;
 use App\Http\Responses\Response;
+use Throwable;
 
 class RatingController extends Controller
 {
