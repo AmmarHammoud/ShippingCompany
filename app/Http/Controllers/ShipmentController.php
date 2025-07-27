@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\ValidationException;
 
 class ShipmentController extends Controller
 {
@@ -226,15 +227,33 @@ $shipments = ShipmentCreationService::getShipmentsByClient($client);
     {
         $shipment = Shipment::where('id', $id)
             ->where('client_id', Auth::id())
-            ->firstOrFail();
+            ->first();
 
-        $updatedShipment = ShipmentCreationService::update($shipment, $request->validated());
+        if (! $shipment) {
+            return response()->json([
+                'message' => 'Shipment not found or does not belong to the authenticated user.'
+            ], 404);
+        }
 
-        return response()->json([
-            'message' => 'Shipment updated successfully.',
-            'shipment' => $updatedShipment
-        ]);}
+        try {
+            $updatedShipment = ShipmentCreationService::update($shipment, $request->validated());
 
+            return response()->json([
+                'message' => 'Shipment updated successfully.',
+                'shipment' => $updatedShipment
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Shipment update failed.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Unexpected error occurred.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
     public function cancel($id)
     {

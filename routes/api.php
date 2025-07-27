@@ -31,7 +31,7 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
     Route::post('recipient', [ShipmentController::class, 'storeRecipient']);
     Route::post('details', [ShipmentController::class, 'storeDetails']);
     Route::post('cancel/{id}', [ShipmentController::class, 'cancel']);
-    Route::put('update/{id}', [ShipmentController::class, 'update']);
+    Route::post('update/{id}', [ShipmentController::class, 'update']);
     Route::get('shipmentshow/{id}', [ShipmentController::class, 'show']);
     Route::get('my-shipments', [ShipmentController::class, 'myShipments']);
 
