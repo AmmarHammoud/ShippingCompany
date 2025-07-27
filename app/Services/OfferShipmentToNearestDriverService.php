@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\ShipmentOfferedToDriver;
 use App\Models\Shipment;
 use App\Models\User;
 use App\Models\ShipmentDriverOffer;
@@ -10,7 +11,7 @@ class OfferShipmentToNearestDriverService
 {
 
 
-  
+
     public static function offer(Shipment $shipment, string $stage = 'pickup'): ?User
     {
         $centerField = $stage === 'pickup' ? 'center_from_id' : 'center_to_id';
@@ -53,6 +54,7 @@ class OfferShipmentToNearestDriverService
                     'stage'       => $stage,
                     'status'      => 'pending',
                 ]);
+                event(new ShipmentOfferedToDriver($shipment, $driver->id));
 
                 return $driver;
             }
