@@ -16,11 +16,11 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
-    Route::get('/noway', function (){
-        return response()->json('fdsfs');
-    });
-});
+//     Route::get('offers', [ShipmentDriverOfferController::class, 'offersByStatus'])->middleware('auth:sanctum');
+//     Route::post('offers/{shipment}/accept', [ShipmentDriverOfferController::class, 'acceptOffer'])
+// ->middleware('auth:sanctum');
+
+
 
 //confrim delivery by recipient
 Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDelivery']);
@@ -77,8 +77,7 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
 
 Route::middleware(['auth:sanctum', 'role:driver'])->group(function(){
     Route::post('offers/{shipment}/accept', [ShipmentDriverOfferController::class, 'acceptOffer']);
-    Route::post('offers/{shipment}/reject', [ShipmentDriverOfferController::class, 'rejectOffer']);
-    Route::get('/shipments/{barcode}/confirm-pickup', [ShipmentDriverOfferController::class, 'confirmPickupByDriver']);
+  Route::get('/shipments/{barcode}/confirm-pickup', [ShipmentDriverOfferController::class, 'confirmPickupByDriver']);
     Route::get('offers', [ShipmentDriverOfferController::class, 'offersByStatus']);
     Route::post('shipments/{id}/hand-over-to-center', [ShipmentDriverOfferController::class, 'confirmHandOverToCenter']);
 });

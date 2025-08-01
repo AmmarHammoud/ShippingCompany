@@ -39,7 +39,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_approved' => 'boolean',
         'active' => 'boolean',
     ];
-
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
     public function center()
     {
         return $this->belongsTo(Center::class);

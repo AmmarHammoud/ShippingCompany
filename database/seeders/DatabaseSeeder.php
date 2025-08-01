@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             CenterSeeder::class,
             ShipmentSeeder::class,
+            DriverSeeder::class
         ]);
         $user = User::firstOrCreate([
             'email' => 'client@test.com',

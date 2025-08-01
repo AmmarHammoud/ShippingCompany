@@ -70,16 +70,17 @@ class ShipmentDriverOfferService
             ->firstOrFail();
 
         $offer->update(['status' => 'rejected']);
-        event(new ShipmentOfferResponded($offer, 'rejected'));
 
         $shipment = Shipment::findOrFail($shipmentId);
+        event(new ShipmentOfferResponded($shipment, 'rejected'));
 
-        if (is_null($shipment->driver_id)) {
+        if (is_null($shipment->pickup_driver_id)) {
             return OfferShipmentToNearestDriverService::offer($shipment, $offer->stage);
         }
 
         return null;
     }
+
 
     public static function confirmPickupByBarcode(string $barcode, User $driver): Shipment
     {
