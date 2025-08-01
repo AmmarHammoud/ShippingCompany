@@ -6,9 +6,11 @@ use App\Http\Requests\HandleShipmentOfferRequest;
 use App\Models\Shipment;
 use App\Models\ShipmentDriverOffer;
 use App\Services\ShipmentDriverOfferService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class ShipmentDriverOfferController extends Controller
 {
@@ -72,23 +74,42 @@ class ShipmentDriverOfferController extends Controller
     }
     public function confirmHandOverToCenter(Request $request, $shipmentId)
     {
-        $shipment = ShipmentDriverOffer::findOrFail($shipmentId);
-        $driver = Auth::user();
-
+          $driver = Auth::user();
         try {
+            $shipment = Shipment::find($shipmentId);
+
+            if (! $shipment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Shipment not found.',
+                ], 404);
+            }
+
+            if ($shipment->pickup_driver_id !== $driver->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are not authorized to access this shipment.',
+                ], 403);
+            }
+
             $updatedShipment = ShipmentDriverOfferService::confirmHandOverToCenter($shipment, $driver);
 
             return response()->json([
                 'message' => 'Shipment handed over to center successfully.',
                 'shipment' => $updatedShipment,
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
-        }
-    }
-
-
-
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }}
 
     public function offersByStatus(Request $request): JsonResponse
     {
