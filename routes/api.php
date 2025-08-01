@@ -16,14 +16,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-//     Route::get('offers', [ShipmentDriverOfferController::class, 'offersByStatus'])->middleware('auth:sanctum');
-//     Route::post('offers/{shipment}/accept', [ShipmentDriverOfferController::class, 'acceptOffer'])
-// ->middleware('auth:sanctum');
 
 
-
-//confrim delivery by recipient
-Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDelivery']);
 
 
 
@@ -34,6 +28,8 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
     Route::post('update/{id}', [ShipmentController::class, 'update']);
     Route::get('shipmentshow/{id}', [ShipmentController::class, 'show']);
     Route::get('my-shipments', [ShipmentController::class, 'myShipments']);
+
+    Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDelivery']);
 
     Route::controller(RatingController::class)->group(function () {
         Route::post('/ratings', 'store');
