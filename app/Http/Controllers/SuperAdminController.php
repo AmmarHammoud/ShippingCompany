@@ -95,6 +95,39 @@ class SuperAdminController extends Controller
             'centers' => $formatted
         ]);
     }
+    public function manger()
+    {
+
+        $managers = User::where('role', 'center_manager')
+            ->with('center')
+            ->get();
+
+        $formatted = $managers->map(function ($manager) {
+            return [
+                'id'                => $manager->id,
+                'name'              => $manager->name,
+                'email'             => $manager->email,
+                'phone'             => $manager->phone,
+                'role'              => $manager->role,
+                'is_approved'       => $manager->is_approved,
+                'active'            => $manager->active,
+                'email_verified_at' => $manager->email_verified_at,
+                'created_at'        => $manager->created_at,
+                'updated_at'        => $manager->updated_at,
+                'center'            => $manager->center ? [
+                    'center_id'   => $manager->center->id,
+                    'center_name' => $manager->center->name,
+                    'latitude'    => $manager->center->latitude,
+                    'longitude'   => $manager->center->longitude
+                ] : null
+            ];
+        });
+
+        return response()->json([
+            'managers' => $formatted
+        ]);
+    }
+
 public function storeCenter(StoreCenterRequest $request)
     {
         $center = $this->centerService->createCenter($request->validated());
