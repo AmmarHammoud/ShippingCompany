@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\KPIExport;
 use App\Http\Requests\StoreCenterManagerRequest;
 use App\Http\Requests\StoreCenterRequest;
+use App\Http\Requests\SwapCenterManagersRequest;
 use App\Http\Requests\UpdateCenterManagerRequest;
 use App\Http\Requests\UpdateCenterRequest;
 use App\Models\Center;
@@ -229,4 +230,13 @@ public function storeCenter(StoreCenterRequest $request)
             'message' => 'KPI data retrieved successfully.',
             'data'    => $data,
         ]);
-    }}
+    }
+    public function swapCenterManagers(SwapCenterManagersRequest $request)
+    {
+        SuperAdminService::swapCenterManagers($request->swaps);
+
+        return response()->json([
+            'message' => 'Managers swapped successfully'
+        ]);}
+
+}

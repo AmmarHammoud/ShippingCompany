@@ -54,6 +54,7 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::post('addmanger', [SuperAdminController::class, 'store']);
     Route::post('updatemanager/{id}', [SuperAdminController::class, 'update']);
     Route::delete('deletemanager/{id}', [SuperAdminController::class, 'destroy']);
+    Route::post('managers/swap', [SuperAdminController::class, 'swapCenterManagers']);
 
     Route::get('centers', [SuperAdminController::class, 'index']);
     Route::get('centers/managers', [SuperAdminController::class, 'manger']);
