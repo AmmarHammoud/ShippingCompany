@@ -119,9 +119,6 @@ class SuperAdminService
         return $center;
 }
 
-
-
-
     public function deleteCenter(int $id)
     {
         $center = Center::findOrFail($id);

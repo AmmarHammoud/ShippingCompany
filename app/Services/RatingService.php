@@ -6,7 +6,7 @@ use App\Models\Rating;
 use App\Models\Shipment;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 class RatingService
 {
     public function createRating(array $data): Rating

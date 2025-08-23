@@ -11,8 +11,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SuperAdminController;
-use App\Http\Controllers\RatingController;
-use App\Http\Controllers\ReportController;
+use App\Http\Controllers\PaymentController;
+
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -38,7 +39,7 @@ Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
     Route::put('update/{id}', [ShipmentController::class, 'update']);
     Route::get('shipmentshow/{id}', [ShipmentController::class, 'show']);
     Route::get('my-shipments', [ShipmentController::class, 'myShipments']);
-
+    
     Route::controller(RatingController::class)->group(function () {
         Route::post('/ratings', 'store');
         Route::get('/ratings/{id}', 'show');
@@ -53,7 +54,10 @@ Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
         Route::delete('/reports/{report}', 'destroy');
         Route::get('/reports', 'index');
     });
-
+    Route::post('/payment/create', [PaymentController::class, 'create']);
+    Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
+    Route::get('/payment/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+    Route::post('/stripe/webhook', [PaymentController::class, 'handleWebhook']);
 });
 
 
@@ -77,6 +81,49 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
 
 });
 
+Route::middleware(['auth:sanctum', 'role:centerManager'])
+    ->prefix('centerManagement')
+    ->name('centerManagement.')
+    ->controller(CenterManagementController::class)
+    ->group(function () {
+        
+        // Drivers routes
+        Route::prefix('drivers')->name('drivers.')->group(function () {
+            Route::post('/', 'createDriver')->name('create');
+            Route::get('/', 'createDriver')->name('getAllDrivers');
+            Route::get('/{id}', 'getDriverDetails')->name('details');
+            Route::post('/{id}', 'updateDriver')->name('update');
+            Route::delete('/{id}', 'deleteDriver')->name('delete');
+            Route::post('/{id}/block', 'blockDriver')->name('block');
+            Route::post('/{id}/unblock', 'unblockDriver')->name('unblock');
+            Route::post('/{id}/approve', 'approveDriver')->name('approve');
+        });
+
+        // Shipments routes
+        Route::prefix('shipments')->name('shipments.')->group(function () {
+            Route::get('/', 'getCenterShipments')->name('list');
+            Route::get('/{id}', 'getShipmentDetails')->name('detail');
+            Route::get('/{id}/stats', 'getCenterShipmentStats')->name('stats');
+            Route::post('/{id}/cancel', 'cancelShipment')->name('cancel');
+        });
+
+        // Trailer routes
+        Route::prefix('trailers')->name('trailers.')->group(function () {
+            Route::post('/{trailerId}/shipments', 'addShipmentToTrailer')->name('add-shipment');
+            Route::delete('/{trailerId}/shipments/{shipmentId}', 'removeShipmentFromTrailer')->name('remove-shipment');
+            
+            Route::get('/{trailerId}/check-capacity/{shipmentId}', 'checkTrailerCapacity')->name('check-capacity');
+            Route::post('/{trailerId}/transfer', 'transferTrailer')->name('transfer');
+            Route::get('/{trailerId}/shipments-list', 'getTrailerShipments')->name('get-shipments');
+        });
+
+        // Reports routes
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/financial', 'getFinancialReport')->name('financial');
+            Route::get('/dashboard', 'getDashboardStats')->name('dashboard');
+            Route::get('/shipments', 'getShipmentsReport')->name('shipments');
+        });
+    });
 
 Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDelivery']);
 

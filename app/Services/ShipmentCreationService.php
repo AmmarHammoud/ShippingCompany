@@ -169,11 +169,15 @@ class ShipmentCreationService
     }
 
 
-    public static function cancel(int $shipmentId): Shipment
+    public static function cancel(int $shipmentId, $isAdmin = false): Shipment
     {
-        $shipment = Shipment::where('id', $shipmentId)
-            ->where('client_id', Auth::id())
-            ->firstOrFail();
+        $query = Shipment::where('id', $shipmentId);
+        
+        if (!$isAdmin) {
+            $query->where('client_id', Auth::id());
+        }
+        
+        $shipment = $query->firstOrFail();
 
         if (!in_array($shipment->status, ['pending', 'offered_pickup_driver'])) {
             throw ValidationException::withMessages([

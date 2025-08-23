@@ -24,6 +24,8 @@ return new class extends Migration
 
             // السائق الذي يوصّل للمستلم
             $table->foreignId('delivery_driver_id')->nullable()->constrained('users')->nullOnDelete();
+            
+            $table->foreignId('trailer_id')->nullable()->constrained('trailers')->nullOnDelete();
 
             $table->decimal('sender_lat', 10, 7);
             $table->decimal('sender_lng', 10, 7);
@@ -37,6 +39,7 @@ return new class extends Migration
             $table->string('shipment_type');
             $table->unsignedInteger('number_of_pieces');
             $table->decimal('weight', 8, 2);
+            $table->decimal('size');//new attribute
             $table->decimal('delivery_price', 8, 2)->default(0);
             $table->decimal('product_value', 10, 2);
             $table->decimal('total_amount', 8, 2);
