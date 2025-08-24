@@ -17,12 +17,6 @@ use App\Http\Controllers\CenterManagementController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
-
-
-
-
-
-
     Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
     Route::post('recipient', [ShipmentController::class, 'storeRecipient']);
     Route::post('details', [ShipmentController::class, 'storeDetails']);
@@ -66,12 +60,7 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::post('storeCenter', [SuperAdminController::class, 'storeCenter']);
     Route::Post('updateCenter/{id}', [SuperAdminController::class, 'updateCenter']);
     Route::delete('deleteCenter/{id}', [SuperAdminController::class, 'deleteCenter']);
-
-
     Route::get('performance-kpis', [SuperAdminController::class, 'performanceKPIs']);
-
-
-
 });
 
 Route::middleware(['auth:sanctum', 'role:centerManager'])

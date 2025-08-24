@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
-            $table->foreign('shipment_id')->references('id')->on('shipments')->onDelete('set null');
+            $table->foreignId('shipment_id')->constrained('shipments')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('description');
             $table->integer('amount');
             $table->timestamps();
