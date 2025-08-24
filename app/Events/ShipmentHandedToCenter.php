@@ -1,15 +1,5 @@
-لتعديل Event ShipmentHandedToCenter ليقوم ببث الإشعار إلى كل من المرسل (client) والمستلم (recipient)، نحتاج إلى:
-
-* تعديل broadcastOn ليبث إلى قناتين PrivateChannel
-* جعل الحدث يبث إلى المستلم أيضاً
-* التأكد من أن لديك علاقة recipient في Shipment (مثلاً recipient\_id موجود ومربوط بجدول users)
-
-🔧 إليك الكود بعد التعديل:
-
 <?php
-
 namespace App\Events;
-
 use App\Models\Shipment;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;

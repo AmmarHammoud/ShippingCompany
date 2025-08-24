@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateReportRequest;
 use App\http\Responses\Response;
 use App\Policies\ReportPolicy;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Throwable;
 
 class ReportController extends Controller
 {

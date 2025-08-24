@@ -12,34 +12,24 @@ use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\PaymentController;
-
-
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
-    Route::get('/noway', function (){
-        return response()->json('fdsfs');
-    });
-});
-
-Route::middleware(['auth:sanctum'])->group(function () {
-
-});
 
 
 
 
-Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
 
+    Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
     Route::post('recipient', [ShipmentController::class, 'storeRecipient']);
     Route::post('details', [ShipmentController::class, 'storeDetails']);
     Route::post('cancel/{id}', [ShipmentController::class, 'cancel']);
-    Route::put('update/{id}', [ShipmentController::class, 'update']);
+    Route::post('update/{id}', [ShipmentController::class, 'update']);
     Route::get('shipmentshow/{id}', [ShipmentController::class, 'show']);
     Route::get('my-shipments', [ShipmentController::class, 'myShipments']);
-    
+Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDelivery']);
+
     Route::controller(RatingController::class)->group(function () {
         Route::post('/ratings', 'store');
         Route::get('/ratings/{id}', 'show');
@@ -62,13 +52,14 @@ Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
 
 
 //super admin
-
 Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::post('addmanger', [SuperAdminController::class, 'store']);
     Route::post('updatemanager/{id}', [SuperAdminController::class, 'update']);
     Route::delete('deletemanager/{id}', [SuperAdminController::class, 'destroy']);
+    Route::post('managers/swap', [SuperAdminController::class, 'swapCenterManagers']);
 
     Route::get('centers', [SuperAdminController::class, 'index']);
+    Route::get('centers/managers', [SuperAdminController::class, 'manger']);
 
     Route::post('storeCenter', [SuperAdminController::class, 'storeCenter']);
     Route::Post('updateCenter/{id}', [SuperAdminController::class, 'updateCenter']);
@@ -125,12 +116,56 @@ Route::middleware(['auth:sanctum', 'role:centerManager'])
         });
     });
 
-Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDelivery']);
+Route::middleware(['auth:sanctum', 'role:centerManager'])
+    ->prefix('centerManagement')
+    ->name('centerManagement.')
+    ->controller(CenterManagementController::class)
+    ->group(function () {
+        
+        // Drivers routes
+        Route::prefix('drivers')->name('drivers.')->group(function () {
+            Route::post('/', 'createDriver')->name('create');
+            Route::get('/', 'createDriver')->name('getAllDrivers');
+            Route::get('/{id}', 'getDriverDetails')->name('details');
+            Route::post('/{id}', 'updateDriver')->name('update');
+            Route::delete('/{id}', 'deleteDriver')->name('delete');
+            Route::post('/{id}/block', 'blockDriver')->name('block');
+            Route::post('/{id}/unblock', 'unblockDriver')->name('unblock');
+            Route::post('/{id}/approve', 'approveDriver')->name('approve');
+        });
+
+        // Shipments routes
+        Route::prefix('shipments')->name('shipments.')->group(function () {
+            Route::get('/', 'getCenterShipments')->name('list');
+            Route::get('/{id}', 'getShipmentDetails')->name('detail');
+            Route::get('/{id}/stats', 'getCenterShipmentStats')->name('stats');
+            Route::post('/{id}/cancel', 'cancelShipment')->name('cancel');
+        });
+
+        // Trailer routes
+        Route::prefix('trailers')->name('trailers.')->group(function () {
+            Route::post('/{trailerId}/shipments', 'addShipmentToTrailer')->name('add-shipment');
+            Route::delete('/{trailerId}/shipments/{shipmentId}', 'removeShipmentFromTrailer')->name('remove-shipment');
+            
+            Route::get('/{trailerId}/check-capacity/{shipmentId}', 'checkTrailerCapacity')->name('check-capacity');
+            Route::post('/{trailerId}/transfer', 'transferTrailer')->name('transfer');
+            Route::get('/{trailerId}/shipments-list', 'getTrailerShipments')->name('get-shipments');
+        });
+
+        // Reports routes
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/financial', 'getFinancialReport')->name('financial');
+            Route::get('/dashboard', 'getDashboardStats')->name('dashboard');
+            Route::get('/shipments', 'getShipmentsReport')->name('shipments');
+        });
+    });
 
 
 Route::middleware(['auth:sanctum', 'role:driver'])->group(function(){
     Route::post('offers/{shipment}/accept', [ShipmentDriverOfferController::class, 'acceptOffer']);
     Route::post('offers/{shipment}/reject', [ShipmentDriverOfferController::class, 'rejectOffer']);
+
+    Route::get('shipments/{barcode}/confirm-pickup', [ShipmentDriverOfferController::class, 'confirmPickupByDriver']);
     Route::get('offers', [ShipmentDriverOfferController::class, 'offersByStatus']);
     Route::post('shipments/{id}/hand-over-to-center', [ShipmentDriverOfferController::class, 'confirmHandOverToCenter']);
 });

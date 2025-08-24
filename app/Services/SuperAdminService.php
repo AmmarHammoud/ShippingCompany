@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Center;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
@@ -40,6 +41,18 @@ class SuperAdminService
 
     public static function update(User $user, array $data): User
     {
+        if (isset($data['center_id']) && $data['center_id'] != $user->center_id) {
+            $existingManager = User::where('role', 'center_manager')
+                ->where('center_id', $data['center_id'])
+                ->where('id', '!=', $user->id)
+                ->first();
+
+            if ($existingManager) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'center_id' => ['This center already has a manager.']
+                ]);
+            }
+        }
         if (isset($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         }
@@ -129,5 +142,48 @@ class SuperAdminService
         }
 
         $center->delete();
+    }
+    public static function swapCenterManagers(array $swaps): void
+    {
+        DB::transaction(function () use ($swaps) {
+            $centersInvolved = [];
+
+            foreach ($swaps as $swap) {
+                $manager = User::where('id', $swap['manager_id'])
+                    ->where('role', 'center_manager')
+                    ->first();
+
+                if (!$manager) {
+                    throw ValidationException::withMessages([
+                        'manager_id' => ["User {$swap['manager_id']} is not a center manager."]
+                    ]);
+                }
+
+                $targetCenter = Center::find($swap['to_center_id']);
+                if (!$targetCenter) {
+                    throw ValidationException::withMessages([
+                        'to_center_id' => ["Center {$swap['to_center_id']} not found."]
+                    ]);
+                }
+
+                $existingManager = User::where('center_id', $swap['to_center_id'])
+                    ->where('role', 'center_manager')
+                    ->whereNotIn('id', collect($swaps)->pluck('manager_id'))
+                    ->first();
+
+                if ($existingManager) {
+                    throw ValidationException::withMessages([
+                        'to_center_id' => ["Center {$swap['to_center_id']} already has a manager outside this swap operation."]
+                    ]);
+                }
+
+                $centersInvolved[] = $swap['to_center_id'];
+            }
+
+            foreach ($swaps as $swap) {
+                User::where('id', $swap['manager_id'])
+                    ->update(['center_id' => $swap['to_center_id']]);
+            }
+        });
     }
 }

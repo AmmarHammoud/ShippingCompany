@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreRatingRequest;
 use Illuminate\Http\Request;
 use App\Http\Resources\RatingResource;
 use App\Services\RatingService;
-use App\Http\Requests\StoreRatingRequest;
 use App\Http\Requests\UpdateRatingRequest;
 use App\Http\Responses\Response;
+use Throwable;
+
 class RatingController extends Controller
 {
 
@@ -33,7 +35,7 @@ class RatingController extends Controller
         try {
             $rating = $this->ratingService->getRatingDetails($id);
             return Response::success(
-                'Rating details retrieved', 
+                'Rating details retrieved',
                 new RatingResource($rating)
             );
         } catch (Throwable $th) {
@@ -46,7 +48,7 @@ class RatingController extends Controller
         try {
             $rating = $this->ratingService->updateRating($id, $request->validated());
             return Response::success(
-                'Rating updated successfully', 
+                'Rating updated successfully',
                 new RatingResource($rating)
             );
         } catch (Throwable $th) {

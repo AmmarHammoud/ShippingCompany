@@ -89,6 +89,7 @@ class ShipmentCreationService
         ]);
 
         $confirmationUrl = url("/shipments/{$barcode}/confirm");
+        $driverConfirmationUrl = url("/shipments/{$barcode}/confirm-pickup");
         $qrImage = QrCode::format('svg')->size(300)->generate($confirmationUrl);
         $filePath = "qr_codes/shipment_{$shipment->id}.svg";
         Storage::disk('public')->put($filePath, $qrImage);
@@ -234,6 +235,8 @@ class ShipmentCreationService
         $shipment->update(['status' => 'delivered',
             'delivered_at' => now(),
         ]);
+        return $shipment;
+
         broadcast(new ShipmentHandedToCenter($shipment));
     }
 

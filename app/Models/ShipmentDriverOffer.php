@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ShipmentDriverOffer extends Model
 {
-    protected $fillable = ['shipment_id', 'driver_id', 'status'];
+    protected $fillable = ['shipment_id', 'driver_id', 'status','stage'];
 
     public function shipment()
     {
