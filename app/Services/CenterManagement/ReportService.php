@@ -190,7 +190,7 @@ class ReportService
     public function getShipmentsReport($filters = [])
     {
         try {
-            $query = Shipment::with(['centerFrom', 'centerTo', 'trailer', 'client', 'recipient', 'pickupDriver', 'deliveryDriver']);
+            $query = Shipment::with(['centerFrom', 'centerTo', 'trailer', 'client', 'recipient', /*'pickupDriver', 'deliveryDriver'*/]);
             
             // تطبيق الفلاتر
             if (!empty($filters['status'])) {
