@@ -66,5 +66,7 @@ class Shipment extends Model
     }
     public function expense(){
         return $this->hasOne(Expense::class);
+
     }
+ 
 }

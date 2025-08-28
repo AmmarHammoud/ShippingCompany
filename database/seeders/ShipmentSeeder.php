@@ -19,13 +19,13 @@ class ShipmentSeeder extends Seeder
             ->each(fn ($user) => $user->assignRole('client'));
 
         $recipients = User::factory(5)->create(['role' => 'client'])
-            ->each(fn ($user) => $user->assignRole('client')); 
+            ->each(fn ($user) => $user->assignRole('client'));
 
         $drivers = User::factory(2)->create(['role' => 'driver'])
             ->each(fn ($user) => $user->assignRole('driver'));
 
         $centers = Center::all();
-        
+
         $shipments = Shipment::factory()->count(15)->create([
             'client_id' => fn() => $clients->random()->id,
             'center_from_id' => fn() => $centers->random()->id,
