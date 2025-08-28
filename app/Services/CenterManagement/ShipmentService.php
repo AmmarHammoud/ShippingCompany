@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Http\Services;
+namespace App\Services\CenterManagement;
 
 use App\Models\Shipment;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
 
 class ShipmentService
 {
-    public static function cancel(int $shipmentId, $isAdmin = false): Shipment
+    public static function cancel(int $shipmentId, $isAdmin = true): Shipment
     {
         $query = Shipment::where('id', $shipmentId);
         
@@ -54,8 +55,8 @@ class ShipmentService
                 'recipient', 
                 'centerFrom', 
                 'centerTo', 
-                'pickupDriver', 
-                'deliveryDriver', 
+                //'pickupDriver', 
+                //'deliveryDriver', 
                 'trailer'
             ])->where(function(Builder $q) use ($centerId) {
                 $q->where('center_from_id', $centerId)

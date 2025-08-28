@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Services\CenterManagement\DriverService;
-use App\Http\Services\CenterManagement\ReportService;
-use App\Http\Services\CenterManagement\ShipmentService;
-use App\Http\Services\CenterManagement\TrailerService;
+use App\Services\CenterManagement\DriverService;
+use App\Services\CenterManagement\ReportService;
+use App\Services\CenterManagement\ShipmentService;
+use App\Services\CenterManagement\TrailerService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Shipment;
+use App\Http\Resources\ShipmentResource;
 
 class CenterManagementController extends Controller
 {
@@ -289,20 +292,9 @@ class CenterManagementController extends Controller
         ]);
     }
 
-    public function blockDriver(Request $request, $driverId)
+    public function blockDriver($driverId)
     {
-        $validator = Validator::make($request->all(), [
-            'reason' => 'nullable|string|max:500'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Invalid Data',
-                'errors' => $validator->errors()
-            ], 400);
-        }
-
-        $result = $this->driverService->blockDriver($driverId, $request->reason);
+        $result = $this->driverService->blockDriver($driverId);
 
         if (!$result['success']) {
             return response()->json([
@@ -400,15 +392,15 @@ class CenterManagementController extends Controller
                 'recipient', 
                 'centerFrom', 
                 'centerTo', 
-                'pickupDriver', 
-                'deliveryDriver', 
+                //'pickupDriver', 
+                //'deliveryDriver', 
                 'trailer'
             ])->findOrFail($shipmentId);
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'shipment' => $shipment
+                    'shipment' => new ShipmentResource($shipment)
                 ]
             ]);
         } catch (ModelNotFoundException $e) {

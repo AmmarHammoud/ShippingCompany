@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Services;
+namespace App\Services\CenterManagement;
 
 use App\Models\Shipment;
 use App\Models\Driver;

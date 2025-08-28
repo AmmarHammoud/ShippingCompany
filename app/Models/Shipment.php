@@ -64,6 +64,10 @@ class Shipment extends Model
     {
         return $this->hasOne(Rating::class);
     }
+    public function trailer() 
+    {
+        return $this->belongsTo(Trailer::class);
+    }
     public function expense(){
         return $this->hasOne(Expense::class);
     }

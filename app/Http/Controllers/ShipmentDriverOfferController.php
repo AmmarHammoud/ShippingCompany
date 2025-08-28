@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use App\Http\Resources\ShipmentResource;
 
 class ShipmentDriverOfferController extends Controller
 {
@@ -22,7 +23,7 @@ class ShipmentDriverOfferController extends Controller
 
             return response()->json([
                 'message' => 'Shipment assigned successfully.',
-                'shipment' => $shipment
+                'shipment' => new ShipmentResource($shipment),
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 409);
@@ -159,7 +160,7 @@ class ShipmentDriverOfferController extends Controller
         $shipments = $query->latest()->get();
 
         return response()->json([
-            'shipments' => $shipments,
+            'shipments' => new ShipmentResource($shipment),
         ]);
     }
 }

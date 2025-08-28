@@ -63,7 +63,7 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::get('performance-kpis', [SuperAdminController::class, 'performanceKPIs']);
 });
 
-Route::middleware(['auth:sanctum', 'role:centerManager'])
+Route::middleware(['auth:sanctum', 'role:center_manager'])
     ->prefix('centerManagement')
     ->name('centerManagement.')
     ->controller(CenterManagementController::class)
@@ -72,51 +72,7 @@ Route::middleware(['auth:sanctum', 'role:centerManager'])
         // Drivers routes
         Route::prefix('drivers')->name('drivers.')->group(function () {
             Route::post('/', 'createDriver')->name('create');
-            Route::get('/', 'createDriver')->name('getAllDrivers');
-            Route::get('/{id}', 'getDriverDetails')->name('details');
-            Route::post('/{id}', 'updateDriver')->name('update');
-            Route::delete('/{id}', 'deleteDriver')->name('delete');
-            Route::post('/{id}/block', 'blockDriver')->name('block');
-            Route::post('/{id}/unblock', 'unblockDriver')->name('unblock');
-            Route::post('/{id}/approve', 'approveDriver')->name('approve');
-        });
-
-        // Shipments routes
-        Route::prefix('shipments')->name('shipments.')->group(function () {
-            Route::get('/', 'getCenterShipments')->name('list');
-            Route::get('/{id}', 'getShipmentDetails')->name('detail');
-            Route::get('/{id}/stats', 'getCenterShipmentStats')->name('stats');
-            Route::post('/{id}/cancel', 'cancelShipment')->name('cancel');
-        });
-
-        // Trailer routes
-        Route::prefix('trailers')->name('trailers.')->group(function () {
-            Route::post('/{trailerId}/shipments', 'addShipmentToTrailer')->name('add-shipment');
-            Route::delete('/{trailerId}/shipments/{shipmentId}', 'removeShipmentFromTrailer')->name('remove-shipment');
-            
-            Route::get('/{trailerId}/check-capacity/{shipmentId}', 'checkTrailerCapacity')->name('check-capacity');
-            Route::post('/{trailerId}/transfer', 'transferTrailer')->name('transfer');
-            Route::get('/{trailerId}/shipments-list', 'getTrailerShipments')->name('get-shipments');
-        });
-
-        // Reports routes
-        Route::prefix('reports')->name('reports.')->group(function () {
-            Route::get('/financial', 'getFinancialReport')->name('financial');
-            Route::get('/dashboard', 'getDashboardStats')->name('dashboard');
-            Route::get('/shipments', 'getShipmentsReport')->name('shipments');
-        });
-    });
-
-Route::middleware(['auth:sanctum', 'role:centerManager'])
-    ->prefix('centerManagement')
-    ->name('centerManagement.')
-    ->controller(CenterManagementController::class)
-    ->group(function () {
-        
-        // Drivers routes
-        Route::prefix('drivers')->name('drivers.')->group(function () {
-            Route::post('/', 'createDriver')->name('create');
-            Route::get('/', 'createDriver')->name('getAllDrivers');
+            Route::get('/', 'getAllDrivers')->name('index');
             Route::get('/{id}', 'getDriverDetails')->name('details');
             Route::post('/{id}', 'updateDriver')->name('update');
             Route::delete('/{id}', 'deleteDriver')->name('delete');
