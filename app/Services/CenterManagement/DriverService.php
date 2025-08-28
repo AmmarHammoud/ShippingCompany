@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Services;
+namespace App\Services\CenterManagement;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -23,16 +24,16 @@ class DriverService
                 'phone' => $data['phone'],
                 'password' => Hash::make($data['password']),
                 'role' => 'driver',
-                'center_id' => $data['center_id'] ?? null,
-                'is_approved' => $data['is_approved'] ?? false,
+                'center_id' => Auth::user()->center->id,
+                'email_verified_at' => now(),
+                'is_approved' => $data['is_approved'] ?? true,
                 'active' => $data['active'] ?? true,
                 'latitude' => $data['latitude'] ?? null,
                 'longitude' => $data['longitude'] ?? null,
             ]);
 
-            // تعيين دور السائق باستخدام Spatie
-            $driverRole = Role::findByName('driver');
-            $user->assignRole($driverRole);
+            $user->assignRole('driver');
+
 
             DB::commit();
 
@@ -157,7 +158,7 @@ class DriverService
         }
     }
 
-    public function blockDriver($driverId, $reason = null)
+    public function blockDriver($driverId)
     {
         try {
             DB::beginTransaction();
@@ -166,7 +167,6 @@ class DriverService
             
             $driver->update([
                 'active' => false,
-                'block_reason' => $reason
             ]);
 
             // إلغاء أي شحنات نشطة مرتبطة بالسائق
@@ -223,7 +223,6 @@ class DriverService
             
             $driver->update([
                 'active' => true,
-                'block_reason' => null
             ]);
 
             return [

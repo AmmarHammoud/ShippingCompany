@@ -11,6 +11,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use App\Http\Resources\AmmarResource;
+use App\Http\Resources\OffersResource;
 
 class ShipmentDriverOfferController extends Controller
 {
@@ -75,7 +77,7 @@ class ShipmentDriverOfferController extends Controller
 
             return response()->json([
                 'message' => 'Shipment assigned successfully.',
-                'data' => $formatted
+                'shipment' => $shipment
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 409);
@@ -173,58 +175,45 @@ public function offersByStatus(Request $request): JsonResponse
 
     $offers = ShipmentDriverOfferService::getOffersByStatus($status);
 
-    $formatted = $offers->map(function ($offer) {
-        $shipment = $offer->shipment;
+        return response()->json(['offers' => $offers]);
+    }
+    public function myShipments(Request $request): JsonResponse
+    {
+        $user = Auth::user();
 
-        return [
-            'offer' => [
-                'id'         => $offer->id,
-                'status'     => $offer->status,
-                'stage'      => $offer->stage,
-                'created_at' => $offer->created_at,
-                'updated_at' => $offer->updated_at,
-            ],
+        if ($user->role !== 'client') {
+            return response()->json(['error' => 'Access denied. Only clients can view their shipments.'], 403);
+        }
 
-            'shipment' => [
-                'id' => $shipment->id,
-                'invoice_number' => $shipment->invoice_number,
-                'barcode' => $shipment->barcode,
-                'status' => $shipment->status,
-                'shipment_type' => $shipment->shipment_type,
-                'number_of_pieces' => $shipment->number_of_pieces,
-                'weight' => $shipment->weight,
-                'delivery_price' => $shipment->delivery_price,
-                'product_value' => $shipment->product_value,
-                'total_amount' => $shipment->total_amount,
-                'qr_code_url' => $shipment->qr_code_url,
-                'delivered_at' => $shipment->delivered_at,
-                'created_at' => $shipment->created_at,
-                'updated_at' => $shipment->updated_at,],
+        $status = $request->query('status');
 
-                'sender' => [
-                    'id' => $shipment->client?->id,
-                    'name' => $shipment->client?->name,
-                    'email' => $shipment->client?->email,
-                    'phone' => $shipment->client?->phone,
-                    'lat' => $shipment->sender_lat,
-                    'lng' => $shipment->sender_lng,
-                ],
+        $query = Shipment::with(['centerFrom', 'centerTo', 'pickupDriver', 'deliveryDriver'])
+            ->where('client_id', $user->id);
 
-                'recipient' => [
-                    'id' => $shipment->recipient?->id,
-                    'name' => $shipment->recipient?->name,
-                    'email' => $shipment->recipient?->email,
-                    'phone' => $shipment->recipient?->phone,
-                    'location' => $shipment->recipient_location,
-                    'lat' => $shipment->recipient_lat,
-                    'lng' => $shipment->recipient_lng,
-                ],
-            
-        ];
-    });
+        if ($status) {
+            $validStatuses = [
+                'pending',
+                'offered_pickup_driver',
+                'picked_up',
+                'in_transit_between_centers',
+                'arrived_at_destination_center',
+                'offered_delivery_driver',
+                'out_for_delivery',
+                'delivered',
+                'cancelled',
+            ];
 
-    return response()->json([
-        'offers' => $formatted
-    ]);
-}
+            if (!in_array($status, $validStatuses)) {
+                return response()->json(['error' => 'Invalid status provided.'], 422);
+            }
+
+            $query->where('status', $status);
+        }
+
+        $shipments = $query->latest()->get();
+
+        return response()->json([
+            'shipments' => $shipments,
+        ]);
+    }
 }

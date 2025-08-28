@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Services;
+namespace App\Services\CenterManagement;
 
 use App\Models\Shipment;
 use App\Models\Driver;
@@ -190,7 +190,7 @@ class ReportService
     public function getShipmentsReport($filters = [])
     {
         try {
-            $query = Shipment::with(['centerFrom', 'centerTo', 'trailer', 'client', 'recipient', 'pickupDriver', 'deliveryDriver']);
+            $query = Shipment::with(['centerFrom', 'centerTo', 'trailer', 'client', 'recipient', /*'pickupDriver', 'deliveryDriver'*/]);
             
             // تطبيق الفلاتر
             if (!empty($filters['status'])) {
