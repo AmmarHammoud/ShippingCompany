@@ -165,18 +165,73 @@ class ShipmentDriverOfferController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }}
-public function offersByStatus(Request $request): JsonResponse
-{
-    $status = $request->query('status');
+    public function offersByStatus(Request $request): JsonResponse
+    {
+        $status = $request->query('status');
 
-    if (! in_array($status, ['pending', 'accepted', 'rejected'])) {
-        return response()->json(['error' => 'Invalid status.'], 422);
+        if (! in_array($status, ['pending', 'accepted', 'rejected'])) {
+            return response()->json(['error' => 'Invalid status.'], 422);
+        }
+
+        $offers = ShipmentDriverOfferService::getOffersByStatus($status);
+
+        $formatted = $offers->map(function ($offer) {
+            $shipment = $offer->shipment;
+
+            return [
+                // بيانات العرض (Offer)
+                'offer' => [
+                    'id'         => $offer->id,
+                    'status'     => $offer->status,
+                    'stage'      => $offer->stage,
+                    'created_at' => $offer->created_at,
+                    'updated_at' => $offer->updated_at,
+                ],
+
+                // بيانات الشحنة (Shipment)
+                'shipment' => [
+                    'id' => $shipment->id,
+                    'invoice_number' => $shipment->invoice_number,
+                    'barcode' => $shipment->barcode,
+                    'status' => $shipment->status,
+                    'shipment_type' => $shipment->shipment_type,
+                    'number_of_pieces' => $shipment->number_of_pieces,
+                    'weight' => $shipment->weight,
+                    'delivery_price' => $shipment->delivery_price,
+                    'product_value' => $shipment->product_value,
+                    'total_amount' => $shipment->total_amount,
+                    'qr_code_url' => $shipment->qr_code_url,
+                    'delivered_at' => $shipment->delivered_at,
+                    'created_at' => $shipment->created_at,
+                    'updated_at' => $shipment->updated_at,
+
+                    'sender' => [
+                        'id' => $shipment->client?->id,
+                        'name' => $shipment->client?->name,
+                        'email' => $shipment->client?->email,
+                        'phone' => $shipment->client?->phone,
+                        'lat' => $shipment->sender_lat,
+                        'lng' => $shipment->sender_lng,
+                    ],
+
+                    'recipient' => [
+                        'id' => $shipment->recipient?->id,
+                        'name' => $shipment->recipient?->name,
+                        'email' => $shipment->recipient?->email,
+                        'phone' => $shipment->recipient?->phone,
+                        'location' => $shipment->recipient_location,
+                        'lat' => $shipment->recipient_lat,
+                        'lng' => $shipment->recipient_lng,
+                    ],
+                ]
+            ];
+        });
+
+        return response()->json([
+            'offers' => $formatted
+        ]);
     }
 
-    $offers = ShipmentDriverOfferService::getOffersByStatus($status);
-
-        return response()->json(['offers' => $offers]);
-    }
     public function myShipments(Request $request): JsonResponse
     {
         $user = Auth::user();
