@@ -428,7 +428,7 @@ class CenterManagementController extends Controller
                 'success' => true,
                 'message' => 'تم إلغاء الشحنة بنجاح',
                 'data' => [
-                    'shipment' => $shipment
+                    'shipment' => new ShipmentResource($shipment)
                 ]
             ]);
         } catch (ModelNotFoundException $e) {

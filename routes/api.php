@@ -17,6 +17,9 @@ use App\Http\Controllers\CenterManagementController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+Route::get('/login', function () {
+    return response()->json(['message' => 'Unauthenticated']);
+})->name('login');
     Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
     Route::post('recipient', [ShipmentController::class, 'storeRecipient']);
     Route::post('details', [ShipmentController::class, 'storeDetails']);
