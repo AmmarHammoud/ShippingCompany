@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use App\Http\Resources\AmmarResource;
+use App\Http\Resources\OffersResource;
 
 class ShipmentDriverOfferController extends Controller
 {
@@ -122,7 +123,9 @@ class ShipmentDriverOfferController extends Controller
 
         $offers = ShipmentDriverOfferService::getOffersByStatus($status);
 
-        return response()->json(['offers' => $offers]);
+        return response()->json([
+            'offers' => OffersResource::collection($offers),
+        ]);
     }
     public function myShipments(Request $request): JsonResponse
     {
