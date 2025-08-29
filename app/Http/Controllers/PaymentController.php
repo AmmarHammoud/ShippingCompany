@@ -17,9 +17,9 @@ class PaymentController extends Controller
         $request->validate([
             'shipment_id' => 'required|exists:shipments,id',
         ]);
-        
+
         $shipment = Shipment::find($request->shipment_id);
-        $user = auth()->user(); 
+        $user = auth()->user();
 
         if (Payment::where('shipment_id', $shipment->id)
                     ->where('status', 'succeeded')
@@ -110,7 +110,7 @@ class PaymentController extends Controller
         $sessionId = $request->sessionId;
         Stripe::setApiKey(config('services.stripe.secret'));
         $session = Session::retrieve($sessionId);
-        
+
         Payment::create([
             'user_id' => $session->metadata->user_id,
             'shipment_id' => $session->metadata->shipment_id,
