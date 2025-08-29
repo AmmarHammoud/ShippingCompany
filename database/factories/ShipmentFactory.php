@@ -19,7 +19,8 @@ class ShipmentFactory extends Factory
             'recipient_lng' => $this->faker->longitude,
             'shipment_type' => $this->faker->randomElement(['document', 'parcel', 'fragile']),
             'number_of_pieces' => $this->faker->numberBetween(1, 10),
-            'weight' => $this->faker->numberBetween(1, 100), 
+            'weight' => $this->faker->numberBetween(1, 100),
+            'size' => $this->faker->numberBetween(1, 10),
             'delivery_price' => $this->faker->numberBetween(10, 200),
             'product_value' => $this->faker->randomFloat(2, 10, 500),
             'total_amount' => function (array $attributes) {

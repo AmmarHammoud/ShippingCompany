@@ -9,26 +9,38 @@ use Illuminate\Support\Facades\Hash;
 
 class DriverSeeder extends Seeder
 {
-    public function run(): void
+   public function run(): void
     {
-        $centers = Center::all();
-
+        $centers = Center::select('id', 'name', 'latitude', 'longitude')->get();
+        $drivers = [];
+        $password = Hash::make('password123');
+        $now = now();
+        
         foreach ($centers as $center) {
             for ($i = 1; $i <= 5; $i++) {
-                User::create([
+                $phoneSuffix = mt_rand(1000000, 9999999);
+                $latVariation = mt_rand(-30, 30) / 1000;
+                $lngVariation = mt_rand(-30, 30) / 1000;
+
+                $drivers[] = [
                     'name' => "Driver_{$center->name}_{$i}",
                     'email' => "driver_{$center->id}_{$i}@example.com",
-                    'phone' => "093" . rand(1000000, 9999999),
-                    'password' => Hash::make('password123'),
+                    'phone' => "093" . $phoneSuffix,
+                    'password' => $password,
                     'role' => 'driver',
                     'center_id' => $center->id,
-                    'is_approved' => true,
-                    'active' => true,
-                    'latitude' => $center->latitude + (mt_rand(-30, 30) / 1000), // ±0.03 تقريبًا 3 كم
-                    'longitude' => $center->longitude + (mt_rand(-30, 30) / 1000),
-                    'email_verified_at' => now(),
-                ]);
+                    'is_approved' => 1, // Use integer instead of boolean
+                    'active' => 1,      // Use integer instead of boolean
+                    'latitude' => $center->latitude + $latVariation,
+                    'longitude' => $center->longitude + $lngVariation,
+                    'email_verified_at' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
             }
         }
+        
+        // Use DB facade for direct insertion (bypasses Eloquent)
+        User::insert($drivers);
     }
 }

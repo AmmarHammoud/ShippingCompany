@@ -19,6 +19,8 @@ class ShipmentResource extends JsonResource
             'client_id' => $this->client_id,
             'center_from_id' => $this->center_from_id,
             'center_to_id' => $this->center_to_id,
+            'center_from' => $this->centerFrom->name,
+            'center_to' => $this->centerTo->name,
             'pickup_driver_id' => $this->pickup_driver_id,
             'delivery_driver_id' => $this->delivery_driver_id,
             // 'sender_lat' => $this->sender_lat,
