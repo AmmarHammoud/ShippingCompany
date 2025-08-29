@@ -33,6 +33,25 @@ class CenterManagementController extends Controller
         $this->shipmentService = $shipmentService;
     }
 
+    public function getAvailableTrailersByCenter($centerId)
+    {
+        $result = $this->trailerService->getAvailableTrailersByCenter($centerId);
+        
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+                'error' => $result['error'] ?? null
+            ], 500);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'data' => $result['data'],
+            'count' => count($result['data'])
+        ]);
+    }
+    
     public function checkCapacity($trailerId, $shipmentId)
     {
         $result = $this->trailerService->checkCapacity($trailerId, $shipmentId);
@@ -47,7 +66,7 @@ class CenterManagementController extends Controller
         return response()->json($result['data']);
     }
 
-    public function assignToTrailer(Request $request, $trailerId, $shipmentId)
+    public function assignToTrailer($trailerId, $shipmentId)
     {
         $result = $this->trailerService->assignToTrailer($trailerId, $shipmentId);
 
@@ -65,20 +84,20 @@ class CenterManagementController extends Controller
         ]);
     }
 
-    public function transferTrailer(Request $request, $trailerId)
+    public function transferTrailer($trailerId)
     {
-        $validator = Validator::make($request->all(), [
-            'destination_center_id' => 'required|exists:centers,id'
-        ]);
+        // $validator = Validator::make($request->all(), [
+        //     'destination_center_id' => 'required|exists:centers,id'
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Invalid Data',
-                'errors' => $validator->errors()
-            ], 400);
-        }
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'message' => 'Invalid Data',
+        //         'errors' => $validator->errors()
+        //     ], 400);
+        // }
 
-        $result = $this->trailerService->transferTrailer($trailerId, $request->destination_center_id);
+        $result = $this->trailerService->transferTrailer($trailerId);
 
         if (!$result['success']) {
             return response()->json([
@@ -95,7 +114,7 @@ class CenterManagementController extends Controller
 
     public function removeFromTrailer(Request $request, $trailerId, $shipmentId)
     {
-        $result = $this->trailerService->removeFromTrailer($trailerId, $shipmentId);
+        $result = $this->trailerService->removeFromTrailer($request, $trailerId, $shipmentId);
 
         if (!$result['success']) {
             return response()->json([

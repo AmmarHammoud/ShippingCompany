@@ -8,9 +8,59 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use App\Http\Resources\ShipmentResource;
+use App\Http\Resources\TrailerResource;
 class TrailerService
 {
+    public function getAvailableTrailersByCenter($centerId)
+    {
+        try {
+            $trailers = Trailer::where('status', 'available')
+                ->where('center_id', $centerId)
+                ->with(['center', 'shipments' => function($query) {
+                    $query->whereIn('status', ['in_transit_between_centers', 'picked_up']);
+                }])
+                ->get();
+            
+            $availableTrailers = [];
+            
+            foreach ($trailers as $trailer) {
+                $usedWeight = $trailer->shipments->sum('weight');
+                $usedSize = $trailer->shipments->sum('size');
+                
+                $availableWeight = $trailer->capacity_kg - $usedWeight;
+                $availableSize = $trailer->capacity_m3 - $usedSize;
+                
+                if ($availableWeight > 0 && $availableSize > 0) {
+                    $availableTrailers[] = [
+                        'trailer' => $trailer,
+                        'used_weight' => $usedWeight,
+                        'used_size' => $usedSize,
+                        'available_weight' => $availableWeight,
+                        'available_size' => $availableSize,
+                        'utilization_percentage' => [
+                            'weight' => round(($usedWeight / $trailer->capacity_kg) * 100, 2),
+                            'size' => round(($usedSize / $trailer->capacity_m3) * 100, 2)
+                        ]
+                    ];
+                }
+            }
+            
+            return [
+                'success' => true,
+                'data' => $availableTrailers
+            ];
+            
+        } catch (\Exception $e) {
+            Log::error('Error fetching available trailers by center: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Failed to fetch available trailers for center',
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+    
     public function checkCapacity($trailerId, $shipmentId)
     {
         try {
@@ -98,7 +148,7 @@ class TrailerService
                 'success' => true,
                 'message' => 'تم إضافة الشحنة إلى الشاحنة بنجاح',
                 'data' => [
-                    'trailer' => $trailer->load('shipments'),
+                    'trailer' => $trailer,
                     'remaining_capacity' => [
                         'weight' => $trailer->capacity_kg - ($usedWeight + $shipment->weight),
                         'size' => $trailer->capacity_m3 - ($usedSize + $shipment->size)
@@ -126,7 +176,7 @@ class TrailerService
         }
     }
 
-    public function transferTrailer($trailerId, $destinationCenterId)
+    public function transferTrailer($trailerId)
     {
         try {
             DB::beginTransaction();
@@ -141,12 +191,12 @@ class TrailerService
                 ];
             }
 
-            $trailer->center_id = $destinationCenterId;
+            $trailer->center_id = $trailer->shipments[0]->center_to_id;
             $trailer->save();
 
             $trailer->shipments()->update([
                 'status' => 'arrived_at_destination_center',
-                'center_to_id' => $destinationCenterId
+                'center_to_id' => $trailer->center_id
             ]);
 
             DB::commit();
@@ -179,7 +229,7 @@ class TrailerService
         }
     }
 
-    public function removeFromTrailer($trailerId, $shipmentId)
+    public function removeFromTrailer(Request $request, $trailerId, $shipmentId)
     {
         try {
             DB::beginTransaction();
@@ -196,7 +246,7 @@ class TrailerService
             }
 
             $shipment->trailer_id = null;
-            $shipment->status = 'arrived_at_destination_center';
+            $shipment->status = $request->new_status ?? 'arrived_at_destination_center';
             $shipment->save();
 
             DB::commit();
@@ -237,11 +287,12 @@ class TrailerService
 
             $usedWeight = $trailer->shipments->sum('weight');
             $usedSize = $trailer->shipments->sum('size');
-
+            $shipments = $trailer->shipments;
             return [
                 'success' => true,
                 'data' => [
-                    'trailer' => $trailer,
+                    'trailer' => TrailerResource::make($trailer),
+                    'shipments' => ShipmentResource::collection($shipments),
                     'capacity_usage' => [
                         'weight' => $usedWeight,
                         'size' => $usedSize,
@@ -249,7 +300,7 @@ class TrailerService
                         'remaining_size' => $trailer->capacity_m3 - $usedSize,
                         'weight_percentage' => round(($usedWeight / $trailer->capacity_kg) * 100, 2),
                         'size_percentage' => round(($usedSize / $trailer->capacity_m3) * 100, 2)
-                    ]
+                    ],
                 ]
             ];
         } catch (ModelNotFoundException $e) {

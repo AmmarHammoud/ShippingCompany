@@ -9,6 +9,7 @@ class Trailer extends Model
     protected $fillable = [
         'name', 
         'center_id',
+        'status',   
         'capacity_kg', 
         'capacity_m3'
     ];
