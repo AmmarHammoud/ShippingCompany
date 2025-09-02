@@ -147,7 +147,6 @@ class PaymentController extends Controller
         if ($payment) {
             $payment->update([
                 'status' => 'failed',
-                'failure_message' => 'Payment failed'
             ]);
 
             Log::error('Payment failed for session: ' . $session->id);
