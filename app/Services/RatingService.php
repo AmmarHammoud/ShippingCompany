@@ -6,6 +6,7 @@ use App\Models\Rating;
 use App\Models\Shipment;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use mysql_xdevapi\Exception;
 
 class RatingService
 {
@@ -15,19 +16,19 @@ class RatingService
 
         // Verify client owns the shipment
         if ($shipment->client_id !== Auth::id()) {
-            abort(403, 'You can only rate your own shipments');
+            Throw new \Exception( 'You can only rate your own shipments', 403);
         }
 
         // Check if shipment is deliverable
         if ($shipment->status != 'delivered') {
-            abort(422, 'Shipment must be delivered before rating');
+            Throw new \Exception('Shipment must be delivered before rating', 422);
         }
 
         // Prevent duplicate ratings
         if (Rating::where('shipment_id', $data['shipment_id'])
                 ->where('user_id', Auth::id())
                 ->exists()) {
-            abort(409, 'You have already rated this shipment');
+            Throw new \Exception('You have already rated this shipment', 409);
         }
 
         return Rating::create([
@@ -41,7 +42,7 @@ class RatingService
     public function getRatingDetails(int $ratingId): Rating
     {
         $rating = Rating::with(['shipment', 'user'])->find($ratingId);
-        
+
         if (!$rating) {
             throw new ModelNotFoundException('Rating not found', 404);
         }
@@ -57,7 +58,7 @@ class RatingService
         if (!$rating) {
             throw new ModelNotFoundException('Rating not found or access denied', 404);
         }
-        
+
         // Only allow updating rating and comment
         $rating->update([
             'rating' => $data['rating'] ?? $rating->rating,

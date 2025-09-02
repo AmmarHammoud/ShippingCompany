@@ -24,7 +24,7 @@ class CenterManagementController extends Controller
         TrailerService $trailerService,
         DriverService $driverService,
         ReportService $reportService,
-        ShipmentService $shipmentService
+        ShipmentService $shipmentService,
     )
     {
         $this->trailerService = $trailerService;
@@ -36,7 +36,7 @@ class CenterManagementController extends Controller
     public function getAvailableTrailersByCenter($centerId)
     {
         $result = $this->trailerService->getAvailableTrailersByCenter($centerId);
-        
+
         if (!$result['success']) {
             return response()->json([
                 'success' => false,
@@ -44,14 +44,14 @@ class CenterManagementController extends Controller
                 'error' => $result['error'] ?? null
             ], 500);
         }
-        
+
         return response()->json([
             'success' => true,
             'data' => $result['data'],
             'count' => count($result['data'])
         ]);
     }
-    
+
     public function checkCapacity($trailerId, $shipmentId)
     {
         $result = $this->trailerService->checkCapacity($trailerId, $shipmentId);
@@ -407,12 +407,12 @@ class CenterManagementController extends Controller
     {
         try {
             $shipment = Shipment::with([
-                'client', 
-                'recipient', 
-                'centerFrom', 
-                'centerTo', 
-                //'pickupDriver', 
-                //'deliveryDriver', 
+                'client',
+                'recipient',
+                'centerFrom',
+                'centerTo',
+                //'pickupDriver',
+                //'deliveryDriver',
                 'trailer'
             ])->findOrFail($shipmentId);
 
@@ -470,7 +470,7 @@ class CenterManagementController extends Controller
             ], 500);
         }
     }
-    
+
     public function getCenterShipments(Request $request)
     {
         $validator = Validator::make($request->all(), [

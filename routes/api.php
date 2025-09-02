@@ -43,10 +43,13 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
         Route::delete('/reports/{report}', 'destroy');
         Route::get('/reports', 'index');
     });
-    Route::post('/payment/create', [PaymentController::class, 'create']);
-    Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
-    Route::get('/payment/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
-    Route::post('/stripe/webhook', [PaymentController::class, 'handleWebhook']);
+    Route::controller(PaymentController::class)->group(function () {
+        Route::post('/payment/create', 'create');
+        Route::get('/payment/status', 'checkPaymentStatus');
+        Route::get('/payment/success', 'success')->name('payment.success');
+        Route::get('/payment/cancel', 'cancel')->name('payment.cancel');
+        Route::post('/stripe/webhook', 'handleWebhook');
+    });
 });
 
 
@@ -71,7 +74,7 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
     ->name('centerManagement.')
     ->controller(CenterManagementController::class)
     ->group(function () {
-        
+
         // Drivers routes
         Route::prefix('drivers')->name('drivers.')->group(function () {
             Route::post('/', 'createDriver')->name('create');
@@ -97,7 +100,7 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
             Route::get('/{centerId}', 'getAvailableTrailersByCenter')->name('get-trailers');// done
             Route::post('/{trailerId}/shipments/{shipmentId}', 'assignToTrailer')->name('add-shipment');//done
             Route::delete('/{trailerId}/shipments/{shipmentId}', 'removeFromTrailer')->name('remove-shipment');//done
-            
+
             Route::get('/{trailerId}/check-capacity/{shipmentId}', 'checkCapacity')->name('check-capacity'); // done
             Route::post('/{trailerId}/transfer', 'transferTrailer')->name('transfer');
             Route::get('/{trailerId}/shipments-list', 'getTrailerShipments')->name('get-shipments'); // done
