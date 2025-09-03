@@ -33,8 +33,7 @@ class ShipmentDriverOfferService
             }
 
             $shipment->update([
-                'pickup_driver_id' => $driver->id,
-                'status' => 'picked_up',
+                'pickup_driver_id' => $driver->id, // QR confirmation required
             ]);
         }
 
@@ -52,7 +51,6 @@ class ShipmentDriverOfferService
         $offer->update(['status' => 'accepted']);
         event(new ShipmentOfferResponded($shipment, 'accepted'));
 
-        // رفض باقي العروض من نفس المرحلة
         ShipmentDriverOffer::where('shipment_id', $shipmentId)
             ->where('driver_id', '!=', $driver->id)
             ->where('stage', $stage)
@@ -72,16 +70,43 @@ class ShipmentDriverOfferService
             ->firstOrFail();
 
         $offer->update(['status' => 'rejected']);
-        event(new ShipmentOfferResponded($offer, 'rejected'));
 
         $shipment = Shipment::findOrFail($shipmentId);
+        event(new ShipmentOfferResponded($shipment, 'rejected'));
 
-        if (is_null($shipment->driver_id)) {
+        if (is_null($shipment->pickup_driver_id)) {
             return OfferShipmentToNearestDriverService::offer($shipment, $offer->stage);
         }
 
         return null;
     }
+
+
+    public static function confirmPickupByBarcode(string $barcode, User $driver): Shipment
+    {
+        $shipment = Shipment::where('barcode', $barcode)->first();
+
+        if (! $shipment) {
+            throw ValidationException::withMessages(['barcode' => ['Shipment not found.']]);
+        }
+
+        if ($shipment->pickup_driver_id !== $driver->id) {
+            throw ValidationException::withMessages(['driver' => ['Unauthorized driver for this shipment.']]);
+        }
+
+        if ($shipment->status !== 'offered_pickup_driver') {
+            throw ValidationException::withMessages(['status' => ['Shipment is not ready for pickup confirmation.']]);
+        }
+
+        $shipment->update([
+            'status' => 'picked_up',
+        ]);
+
+        return $shipment;
+    }
+
+
+
 
     public static function confirmHandOverToCenter(Shipment $shipment, User $driver)
     {

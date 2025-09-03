@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\KPIExport;
 use App\Http\Requests\StoreCenterManagerRequest;
 use App\Http\Requests\StoreCenterRequest;
+use App\Http\Requests\SwapCenterManagersRequest;
 use App\Http\Requests\UpdateCenterManagerRequest;
 use App\Http\Requests\UpdateCenterRequest;
 use App\Models\Center;
@@ -15,6 +16,7 @@ use App\Services\SuperAdminService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SuperAdminController extends Controller
@@ -44,7 +46,9 @@ class SuperAdminController extends Controller
             return response()->json(['error' => 'This user is not a center manager.'], 422);
         }
 
-        $updated = SuperAdminService::update($manager, $request->validated());
+        $data = $request->all();
+
+        $updated = SuperAdminService::update($manager, $data);
 
         return response()->json([
             'message' => 'Center manager updated successfully.',
@@ -62,13 +66,69 @@ class SuperAdminController extends Controller
     }
     public function index()
     {
-        $managers = User::where('role', 'center_manager')->with('center')->get();
+      $centers = Center::with('manager')->get();
+
+
+        $formatted = $centers->map(function ($center) {
+            return [
+                'center_id' => $center->id,
+                'center_name' => $center->name,
+                'latitude' => $center->latitude,
+                'longitude' => $center->longitude,
+                'created_at' => $center->created_at,
+                'updated_at' => $center->updated_at,
+                'manager' => $center->manager ? [
+                    'id' => $center->manager->id,
+                    'name' => $center->manager->name,
+                    'email' => $center->manager->email,
+                    'phone' => $center->manager->phone,
+                    'role' => $center->manager->role,
+                    'is_approved' => $center->manager->is_approved,
+                    'active' => $center->manager->active,
+                    'email_verified_at' => $center->manager->email_verified_at,
+                    'created_at' => $center->manager->created_at,
+                    'updated_at' => $center->manager->updated_at,
+                ] :null
+            ];
+        });
 
         return response()->json([
-            'managers' => $managers
+            'centers' => $formatted
         ]);
+    }
+    public function manger()
+    {
 
-}
+        $managers = User::where('role', 'center_manager')
+            ->with('center')
+            ->get();
+
+        $formatted = $managers->map(function ($manager) {
+            return [
+                'id'                => $manager->id,
+                'name'              => $manager->name,
+                'email'             => $manager->email,
+                'phone'             => $manager->phone,
+                'role'              => $manager->role,
+                'is_approved'       => $manager->is_approved,
+                'active'            => $manager->active,
+                'email_verified_at' => $manager->email_verified_at,
+                'created_at'        => $manager->created_at,
+                'updated_at'        => $manager->updated_at,
+                'center'            => $manager->center ? [
+                    'center_id'   => $manager->center->id,
+                    'center_name' => $manager->center->name,
+                    'latitude'    => $manager->center->latitude,
+                    'longitude'   => $manager->center->longitude
+                ] : null
+            ];
+        });
+
+        return response()->json([
+            'managers' => $formatted
+        ]);
+    }
+
 public function storeCenter(StoreCenterRequest $request)
     {
         $center = $this->centerService->createCenter($request->validated());
@@ -91,15 +151,33 @@ public function storeCenter(StoreCenterRequest $request)
 
     public function deleteCenter(int $id)
     {
+        try {
         $this->centerService->deleteCenter($id);
 
-        return response()->json([
-            'message' => 'Center deleted successfully.'
-        ]);
+          return response()->json([
+        'message' => 'Center deleted successfully.'
+    ]);
+} catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+    return response()->json([
+        'error' => 'Center not found.'
+    ], 404);
+}
     }
 
     public function performanceKPIs(Request $request, KpiService $kpiService)
     {
+
+        $validator = Validator::make($request->all(), [
+            'start_date' => 'required|date_format:Y-m-d',
+            'end_date'   => 'required|date_format:Y-m-d|after_or_equal:start_date',
+            'center_id'  => 'required|exists:centers,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
         $centerId = $request->query('center_id');
@@ -152,4 +230,13 @@ public function storeCenter(StoreCenterRequest $request)
             'message' => 'KPI data retrieved successfully.',
             'data'    => $data,
         ]);
-    }}
+    }
+    public function swapCenterManagers(SwapCenterManagersRequest $request)
+    {
+        SuperAdminService::swapCenterManagers($request->swaps);
+
+        return response()->json([
+            'message' => 'Managers swapped successfully'
+        ]);}
+
+}

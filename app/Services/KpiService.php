@@ -13,25 +13,11 @@ class KpiService
         $query = Shipment::query();
 
         if (!empty($filters['center_id'])) {
-            $center = Center::find($filters['center_id']);
-            if ($center) {
-                $radiusInKm = 30; // أو أي نصف قطر تختاره
-                $lat = $center->latitude;
-                $lon = $center->longitude;
-
-                $latDelta = $radiusInKm / 111;
-                $lonDelta = $radiusInKm / (111 * cos(deg2rad($lat)));
-
-                $minLat = $lat - $latDelta;
-                $maxLat = $lat + $latDelta;
-                $minLon = $lon - $lonDelta;
-                $maxLon = $lon + $lonDelta;
-
-                $query->whereBetween('sender_lat', [$minLat, $maxLat])
-                    ->whereBetween('sender_lng', [$minLon, $maxLon]);
-            }
+            $query->where(function ($q) use ($filters) {
+                $q->where('center_from_id', $filters['center_id'])
+                    ->orWhere('center_to_id', $filters['center_id']);
+            });
         }
-
 
         if (!empty($filters['start_date'])) {
             $query->whereDate('created_at', '>=', $filters['start_date']);
@@ -40,6 +26,7 @@ class KpiService
         if (!empty($filters['end_date'])) {
             $query->whereDate('created_at', '<=', $filters['end_date']);
         }
+
 
         $total = (clone $query)->count();
         $delivered = (clone $query)->where('status', 'delivered')->count();
@@ -59,11 +46,12 @@ class KpiService
 
         return [
             'summary' => [
-                'total_shipments' => $total,
-                'delivered_shipments' => $delivered,
-                'cancelled_shipments' => $cancelled,
-                'avg_delivery_time' => round($avgDeliveryTime ?? 0, 2),
+                'total_shipments'      => $total,
+                'delivered_shipments'  => $delivered,
+                'cancelled_shipments'  => $cancelled,
+                'avg_delivery_time'    => round($avgDeliveryTime ?? 0, 2),
             ],
             'trend' => $trend,
         ];
-    }}
+    }
+}

@@ -4,8 +4,9 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\AmmarResource;
 
-class RatingResource extends JsonResource
+class OffersResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,15 +17,13 @@ class RatingResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'rating' => $this->rating,
-            'comment' => $this->comment,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
             'shipment_id' => $this->shipment_id,
-            'user' => [
-                'id' => $this->user->id,
-                'name' => $this->user->name,
-            ]
+            'driver_id' => $this->driver_id,
+            'status' => $this->status,
+            'stage' => $this->stage,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'shipment' => new AmmarResource($this->whenLoaded('shipment')),
         ];
     }
 }

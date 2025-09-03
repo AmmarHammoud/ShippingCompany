@@ -12,6 +12,10 @@ class ReportService
     public function createReport(array $data): Report
     {
         // Authorization is now handled by controller policy
+
+        if(Report::query()->where('shipment_id', $data['shipment_id'])){
+            throw new \Exception('Shipment already reported.', 403);
+        }
         
         // Simply create the report
         return Report::create([
@@ -29,11 +33,11 @@ class ReportService
         if (!Auth::user()->isAdmin()) {
             $query->where('user_id', Auth::id());
         }
-        
+
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
         }
-        
+
         return $query->paginate(10);
     }
 
@@ -41,19 +45,19 @@ class ReportService
     {
         // Authorization is handled by controller policy
         // Only update allowed fields based on user role
-        
+
         $updates = [];
-        
+
         if (isset($data['message'])) {
             $updates['message'] = $data['message'];
         }
-    
-        if (isset($data['status']) && Auth::user()->can('updateStatus', Report::class)) {
+
+        if (isset($data['status']) && !Auth::user()->isClient() && !Auth::user()->isDriver()) {
             $updates['status'] = $data['status'];
         }
-        
+
         $report->update($updates);
-        
+
         return $report->fresh();
     }
 

@@ -4,7 +4,7 @@ namespace App\Policies;
 
 use App\Models\Report;
 use App\Models\User;
-
+use App\Models\Shipment;
 class ReportPolicy
 {
     public function viewAny(User $user): bool

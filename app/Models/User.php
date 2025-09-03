@@ -39,7 +39,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_approved' => 'boolean',
         'active' => 'boolean',
     ];
-
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
     public function center()
     {
         return $this->belongsTo(Center::class);
@@ -61,8 +64,8 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(ShipmentDriverOffer::class, 'driver_id');
     }
-    
-    public function ratings(): HasMany
+
+    public function ratings()
     {
         return $this->hasMany(Rating::class);
     }
@@ -75,5 +78,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isCenterManager(): bool
     {
         return $this->role === 'center_manager';
+    }
+    public function isDriver(): bool
+    {
+        return $this->role === 'driver';
+    }
+    public function isClient(): bool
+    {
+        return $this->role === 'client';
     }
 }

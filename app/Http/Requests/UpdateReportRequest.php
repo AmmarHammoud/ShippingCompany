@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreRecipientRequest extends FormRequest
+class UpdateReportRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,14 +21,13 @@ class StoreRecipientRequest extends FormRequest
      */
     public function rules(): array
     {
-
-
         return [
-            'recipient_phone' => 'required|string|max:20|exists:users,phone',
-            'recipient_location' => 'required|string|max:255',
-            'recipient_lat' => 'required|numeric|between:-90,90',
-            'recipient_lng' => 'required|numeric|between:-180,180',
+            'message' => 'sometimes|string|max:1000',
+            'status' => [
+                'sometimes',
+                'string',
+                'in:pending,in_progress,resolved'
+            ],
         ];
     }
-
 }

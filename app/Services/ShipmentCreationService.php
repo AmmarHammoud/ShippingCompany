@@ -89,6 +89,7 @@ class ShipmentCreationService
         ]);
 
         $confirmationUrl = url("/shipments/{$barcode}/confirm");
+        $driverConfirmationUrl = url("/shipments/{$barcode}/confirm-pickup");
         $qrImage = QrCode::format('svg')->size(300)->generate($confirmationUrl);
         $filePath = "qr_codes/shipment_{$shipment->id}.svg";
         Storage::disk('public')->put($filePath, $qrImage);
@@ -169,11 +170,15 @@ class ShipmentCreationService
     }
 
 
-    public static function cancel(int $shipmentId): Shipment
+    public static function cancel(int $shipmentId, $isAdmin = false): Shipment
     {
-        $shipment = Shipment::where('id', $shipmentId)
-            ->where('client_id', Auth::id())
-            ->firstOrFail();
+        $query = Shipment::where('id', $shipmentId);
+        
+        if (!$isAdmin) {
+            $query->where('client_id', Auth::id());
+        }
+        
+        $shipment = $query->firstOrFail();
 
         if (!in_array($shipment->status, ['pending', 'offered_pickup_driver'])) {
             throw ValidationException::withMessages([
@@ -230,6 +235,8 @@ class ShipmentCreationService
         $shipment->update(['status' => 'delivered',
             'delivered_at' => now(),
         ]);
+        return $shipment;
+
         broadcast(new ShipmentHandedToCenter($shipment));
     }
 

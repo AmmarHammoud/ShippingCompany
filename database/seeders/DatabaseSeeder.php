@@ -16,9 +16,11 @@ class DatabaseSeeder extends Seeder
     {
 
         $this->call([
-            RolePermissionSeeder::class,
-            CenterSeeder::class,
-            ShipmentSeeder::class,
+                CenterSeeder::class,
+                RolePermissionSeeder::class,
+                ShipmentSeeder::class,
+                DriverSeeder::class,
+                TrailerSeeder::class
         ]);
         $user = User::firstOrCreate([
             'email' => 'client@test.com',

@@ -14,24 +14,19 @@ class ShipmentSeeder extends Seeder
     public function run()
     {
         // Create necessary relationships first
-        $clients = User::factory(3)->create(['role' => 'client']);
-        $recipients = User::factory(5)->create(['role' => 'client']);
-        $drivers = User::factory(2)->create(['role' => 'driver']);
+
+        $clients = User::factory(3)->create(['role' => 'client'])
+            ->each(fn ($user) => $user->assignRole('client'));
+
+        $recipients = User::factory(5)->create(['role' => 'client'])
+            ->each(fn ($user) => $user->assignRole('client'));
+
+        $drivers = User::factory(2)->create(['role' => 'driver'])
+            ->each(fn ($user) => $user->assignRole('driver'));
+
         $centers = Center::all();
-        foreach($clients as $client){
-            $client->assignRole('client');
-        }
 
-        foreach($recipients as $recipient){
-            $recipient->assignRole('client');
-        }
-
-        foreach($drivers as $driver){
-            $driver->assignRole('driver');
-        }
-
-        // Create 5 shipments
-        Shipment::factory()->count(5)->create([
+        $shipments = Shipment::factory()->count(15)->create([
             'client_id' => fn() => $clients->random()->id,
             'center_from_id' => fn() => $centers->random()->id,
             'center_to_id' => fn() => $centers->random()->id,
@@ -42,5 +37,9 @@ class ShipmentSeeder extends Seeder
             'barcode' => fn() => 'BRC-' . Str::upper(Str::random(12)),
             'qr_code_url' => fn() => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . Str::uuid(),
         ]);
+        foreach($shipments as $shipment) {
+            if($shipment->status == 'delivered') $shipment->delivered_at = now();
+            $shipment->save();
+        }
     }
 }

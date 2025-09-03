@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreRatingRequest;
 use Illuminate\Http\Request;
 use App\Http\Resources\RatingResource;
+use App\Services\RatingService;
+use App\Http\Requests\UpdateRatingRequest;
+use App\Http\Responses\Response;
+use Throwable;
 
 class RatingController extends Controller
 {
@@ -14,14 +19,14 @@ class RatingController extends Controller
     {
         $this->ratingService = $ratingService;
     }
-    
+
     public function store(StoreRatingRequest $request)
     {
         try {
             $rating = $this->ratingService->createRating($request->validated());
-            return $this->success('Rating submitted successfully', $rating);
+            return Response::success('Rating submitted successfully', $rating);
         } catch (Throwable $th) {
-            return $this->error($th->getMessage(), $th->getCode());
+            return Response::error($th->getMessage(), $th->getCode());
         }
     }
 
@@ -29,12 +34,12 @@ class RatingController extends Controller
     {
         try {
             $rating = $this->ratingService->getRatingDetails($id);
-            return $this->success(
-                'Rating details retrieved', 
+            return Response::success(
+                'Rating details retrieved',
                 new RatingResource($rating)
             );
         } catch (Throwable $th) {
-            return $this->error($th->getMessage(), $th->getCode());
+            return Response::error($th->getMessage(), $th->getCode());
         }
     }
 
@@ -42,12 +47,12 @@ class RatingController extends Controller
     {
         try {
             $rating = $this->ratingService->updateRating($id, $request->validated());
-            return $this->success(
-                'Rating updated successfully', 
+            return Response::success(
+                'Rating updated successfully',
                 new RatingResource($rating)
             );
         } catch (Throwable $th) {
-            return $this->error($th->getMessage(), $th->getCode());
+            return Response::error($th->getMessage(), $th->getCode());
         }
     }
 
@@ -55,9 +60,9 @@ class RatingController extends Controller
     {
         try {
             $this->ratingService->deleteRating($id);
-            return $this->success('Rating deleted successfully');
+            return Response::success('Rating deleted successfully');
         } catch (Throwable $th) {
-            return $this->error($th->getMessage(), $th->getCode());
+            return Response::error($th->getMessage(), $th->getCode());
         }
     }
 }
