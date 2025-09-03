@@ -32,4 +32,4 @@ jobs:
         username: ammar0hammoud-001
         password: ${{ secrets.PASSWORD }}
         local-dir: ./public/
-        remote-path: /shipping-company
+        remote-path: /wwwroot
