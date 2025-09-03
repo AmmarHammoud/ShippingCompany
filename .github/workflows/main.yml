@@ -31,5 +31,5 @@ jobs:
         server: win9081.site4now.net
         username: ammar0hammoud-001
         password: ${{ secrets.PASSWORD }}
-        local-dir: ./public
+        local-dir: ./public/
         remote-path: /shipping-company
