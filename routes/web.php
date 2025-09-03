@@ -11,5 +11,6 @@ Route::get('/', function () {
 Route::get('/login', function () {
     return response()->json(['message' => 'Unauthenticated']);
 })->name('login');
+
 Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDelivery']);
 Route::get('dashboard/performance-kpis', [SuperAdminController::class, 'performanceKPIs']);

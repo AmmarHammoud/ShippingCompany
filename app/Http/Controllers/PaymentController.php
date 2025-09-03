@@ -68,7 +68,6 @@ class PaymentController extends Controller
             return response()->json([
                 'session_id' => $session->id,
                 'url' => $session->url,
-                'payment_intent' => $session->payment_intent
             ]);
 
         } catch (\Exception $e) {
@@ -192,6 +191,7 @@ class PaymentController extends Controller
         if (!$payment) {
             return Response::error('Payment not found', [], 404);
         }
+        $payment->update(['status' => 'paid']);
 
         return Response::success('Payment has been processed successfully.', [
             'status' => $payment->status,

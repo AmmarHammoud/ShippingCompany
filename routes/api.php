@@ -46,9 +46,9 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
     Route::controller(PaymentController::class)->group(function () {
         Route::post('/payment/create', 'create');
         Route::get('/payment/status', 'checkPaymentStatus');
-        Route::get('/payment/success', 'success')->name('payment.success');
-        Route::get('/payment/cancel', 'cancel')->name('payment.cancel');
-        Route::post('/stripe/webhook', 'handleWebhook');
+        Route::post('/payment/success', 'success')->name('payment.success');
+        Route::post('/payment/cancel', 'cancel')->name('payment.cancel');
+        //Route::post('/stripe/webhook', 'handleWebhook');
     });
 });
 
@@ -128,22 +128,6 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('signup', 'signUp')->name('user.sign_up');
     Route::post('signin', 'signIn')->name('user.sign_in');
     Route::get('signout', 'signOut')->middleware('auth:sanctum');
-});
-
-Route::controller(ResetPasswordController::class)->group(function () {
-    Route::post('forgotPassword', 'forgotPassword')->name('check.email_password');
-    Route::post('checkCode', 'checkCode')->name('check.email_password');
-    Route::post('resetPassword', 'resetPassword')->name('check.email_password');
-});
-
-Route::controller(EmailVerificationController::class)->group(function () {
-    Route::post('verifyEmail', 'verifyEmail')->name('check.email_password');
-    Route::post('resendVerificationCode', 'resendVerificationCode')->name('check.email_password');
-});
-
-Route::controller(AuthController::class)->group(function () {
-    Route::post('signup', 'signUp')->name('user.sign_up');
-    Route::post('signin', 'signIn')->name('user.sign_in');
 });
 
 Route::controller(ResetPasswordController::class)->group(function () {

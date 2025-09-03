@@ -13,6 +13,9 @@ class ReportService
     {
         // Authorization is now handled by controller policy
 
+        if(Report::query()->where('shipment_id', $data['shipment_id'])){
+            throw new \Exception('Shipment already reported.', 403);
+        }
         // Simply create the report
         return Report::create([
             'shipment_id' => $data['shipment_id'],
@@ -47,7 +50,7 @@ class ReportService
         if (isset($data['message'])) {
             $updates['message'] = $data['message'];
         }
-    
+
         if (isset($data['status']) && !Auth::user()->isClient() && !Auth::user()->isDriver()) {
             $updates['status'] = $data['status'];
         }
