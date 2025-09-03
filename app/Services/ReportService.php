@@ -16,6 +16,7 @@ class ReportService
         if(Report::query()->where('shipment_id', $data['shipment_id'])){
             throw new \Exception('Shipment already reported.', 403);
         }
+        
         // Simply create the report
         return Report::create([
             'shipment_id' => $data['shipment_id'],

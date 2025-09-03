@@ -140,3 +140,5 @@ Route::controller(EmailVerificationController::class)->group(function () {
     Route::post('verifyEmail', 'verifyEmail')->name('check.email_password');
     Route::post('resendVerificationCode', 'resendVerificationCode')->name('check.email_password');
 });
+
+Route::get('rating/{ratingId}', [RatingController::class, 'show']);

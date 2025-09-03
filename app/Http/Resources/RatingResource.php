@@ -20,10 +20,7 @@ class RatingResource extends JsonResource
             'comment' => $this->comment,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
-            'shipment' => [
-                'id' => $this->shipment->id,
-                'tracking_number' => $this->shipment->tracking_number,
-            ],
+            'shipment_id' => $this->shipment_id,
             'user' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
