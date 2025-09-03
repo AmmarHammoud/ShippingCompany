@@ -13,7 +13,7 @@ jobs:
     #   with:
     #     server: win9081.site4now.net
     #     username: ammar0hammoud-001
-    #     password: ${{ secrets.PASSWORD}}
+    #     password: ${{secrets.PASSWORD}}
     # Upload everything except public/ to the root (outside wwwroot)
     - name: 📂 Upload project to SmarterASP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
