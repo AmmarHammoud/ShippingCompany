@@ -8,9 +8,28 @@ jobs:
     - name: 🚚 Get latest code
       uses: actions/checkout@v4
     
-    - name: 📂 Sync files
+    # - name: 📂 Sync files
+    #   uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+    #   with:
+    #     server: win9081.site4now.net
+    #     username: ammar0hammoud-001
+    #     password: ${{ secrets.PASSWORD}}
+    # Upload everything except public/ to the root (outside wwwroot)
+    - name: 📂 Sync root files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
         server: win9081.site4now.net
         username: ammar0hammoud-001
-        password: ${{ secrets.PASSWORD}}
+        password: ${{ secrets.PASSWORD }}
+        local-dir: ./
+        git-ftp-args: "--exclude public/* --exclude .git --exclude node_modules"
+
+      # Upload only public/ contents to wwwroot
+    - name: 📂 Sync public folder
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      with:
+        server: win9081.site4now.net
+        username: ammar0hammoud-001
+        password: ${{ secrets.PASSWORD }}
+        local-dir: ./public
+        remote-path: /wwwroot
