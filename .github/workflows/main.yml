@@ -24,3 +24,4 @@ jobs:
         local-dir: ./
         remote-path: www/shipping-company
         git-ftp-args: "--exclude public/* --exclude .git --exclude node_modules"
+        dangerous-clean-slate: true
