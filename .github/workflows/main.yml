@@ -11,8 +11,8 @@ jobs:
     # - name: 📂 Sync files
     #   uses: SamKirkland/FTP-Deploy-Action@v4.3.6
     #   with:
-    #     server: win9081.site4now.net
-    #     username: ammar0hammoud-001
+    #     server: win8117.site4now.net
+    #     username: fastship-001
     #     password: ${{secrets.PASSWORD}}
     # Upload everything except public/ to the root (outside wwwroot)
 
