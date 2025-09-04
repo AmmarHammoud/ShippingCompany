@@ -18,8 +18,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
                 CenterSeeder::class,
                 RolePermissionSeeder::class,
-                ShipmentSeeder::class,
                 DriverSeeder::class,
+                ShipmentSeeder::class,
                 TrailerSeeder::class
         ]);
         $user = User::firstOrCreate([

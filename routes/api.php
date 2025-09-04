@@ -1,6 +1,7 @@
 <?php
 
 use App\Events\TestPusherEvent;
+use App\Http\Controllers\Controller;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\ResetPasswordController;
@@ -142,3 +143,4 @@ Route::controller(EmailVerificationController::class)->group(function () {
 });
 
 Route::get('rating/{ratingId}', [RatingController::class, 'show']);
+Route::get('drds', [AuthController::class, 'adsf']);

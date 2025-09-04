@@ -62,7 +62,7 @@ class DriverService
             DB::beginTransaction();
 
             $driver = User::role('driver')->findOrFail($driverId);
-            
+
             // تحديث بيانات السائق
             $updateData = [];
             if (isset($data['name'])) $updateData['name'] = $data['name'];
@@ -73,11 +73,11 @@ class DriverService
             if (isset($data['active'])) $updateData['active'] = $data['active'];
             if (isset($data['latitude'])) $updateData['latitude'] = $data['latitude'];
             if (isset($data['longitude'])) $updateData['longitude'] = $data['longitude'];
-            
+
             if (isset($data['password'])) {
                 $updateData['password'] = Hash::make($data['password']);
             }
-            
+
             $driver->update($updateData);
 
             DB::commit();
@@ -116,11 +116,11 @@ class DriverService
             DB::beginTransaction();
 
             $driver = User::role('driver')->findOrFail($driverId);
-            
+
             // التحقق من عدم وجود شحنات مرتبطة بالسائق
             $hasPickupShipments = DB::table('shipments')->where('pickup_driver_id', $driverId)->exists();
             $hasDeliveryShipments = DB::table('shipments')->where('delivery_driver_id', $driverId)->exists();
-            
+
             if ($hasPickupShipments || $hasDeliveryShipments) {
                 return [
                     'success' => false,
@@ -128,7 +128,7 @@ class DriverService
                     'status' => 400
                 ];
             }
-            
+
             $driver->delete();
 
             DB::commit();
@@ -164,7 +164,7 @@ class DriverService
             DB::beginTransaction();
 
             $driver = User::role('driver')->findOrFail($driverId);
-            
+
             $driver->update([
                 'active' => false,
             ]);
@@ -220,7 +220,7 @@ class DriverService
     {
         try {
             $driver = User::role('driver')->findOrFail($driverId);
-            
+
             $driver->update([
                 'active' => true,
             ]);
@@ -255,7 +255,7 @@ class DriverService
     {
         try {
             $driver = User::role('driver')->findOrFail($driverId);
-            
+
             $driver->update([
                 'is_approved' => true
             ]);
@@ -290,7 +290,7 @@ class DriverService
     {
         try {
             $driver = User::role('driver')->with(['center', 'permissions'])->findOrFail($driverId);
-            
+
             // إحصائيات السائق
             $stats = [
                 'total_pickups' => DB::table('shipments')->where('pickup_driver_id', $driverId)->count(),
@@ -341,12 +341,11 @@ class DriverService
     {
         try {
             $query = User::role('driver')->with(['center', 'permissions']);
-            
-            // تطبيق الفلاتر
+
             if (!empty($filters['center_id'])) {
                 $query->where('center_id', $filters['center_id']);
             }
-            
+
             if (!empty($filters['status'])) {
                 if ($filters['status'] === 'active') {
                     $query->where('active', true);
@@ -354,11 +353,11 @@ class DriverService
                     $query->where('active', false);
                 }
             }
-            
+
             if (!empty($filters['approved'])) {
                 $query->where('is_approved', filter_var($filters['approved'], FILTER_VALIDATE_BOOLEAN));
             }
-            
+
             $drivers = $query->get();
 
             return [

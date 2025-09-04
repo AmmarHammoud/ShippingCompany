@@ -20,9 +20,9 @@ class ShipmentSeeder extends Seeder
 
         $recipients = User::factory(5)->create(['role' => 'client'])
             ->each(fn ($user) => $user->assignRole('client'));
-
-        $drivers = User::factory(2)->create(['role' => 'driver'])
-            ->each(fn ($user) => $user->assignRole('driver'));
+        $drivers = User::query()->role('driver')->get();
+//        $drivers = User::factory(2)->create(['role' => 'driver'])
+//            ->each(fn ($user) => $user->assignRole('driver'));
 
         $centers = Center::all();
 
