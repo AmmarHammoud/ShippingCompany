@@ -34,7 +34,7 @@ class AuthController extends Controller
     {
         try {
             $data = $this->authService->signin($signInRequest);
-            return Response::success($data['message'], $data['user']);
+            return Response::success($data['message'], $data['user'], $data['status']);
         } catch (Throwable $th) {
             $message = $th->getMessage();
             return Response::error($message);

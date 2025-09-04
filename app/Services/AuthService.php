@@ -21,7 +21,7 @@ use Spatie\Permission\Models\Role;
 class AuthService {
     public function signup(Request $request): array
     {
-        
+
         $request->validated();
         //$image = $this->fileUploader->storeFile($request, 'image');
         $user = User::query()->create([
@@ -46,7 +46,7 @@ class AuthService {
             VerificationCode::create($data);
             Mail::to($user['email'])->send(new VerificationCodeMail($verification_code));
         }
-        
+
         $role = Role::query()->where('name', $role1)->first();
         $user->assignRole($role);
         $permissions = $role->permissions()->pluck('name')->toArray();
@@ -73,7 +73,7 @@ class AuthService {
         }
 
         if (is_null($user['email_verified_at'])) {
-            throw new Exception(__('messages.email_not_confirmed'));
+            throw new Exception(__('messages.email_not_confirmed'), 403);
         }
 
         $user = $this->appendRolesAndPermissions($user);
