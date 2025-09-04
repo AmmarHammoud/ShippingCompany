@@ -47,9 +47,9 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
     Route::controller(PaymentController::class)->group(function () {
         Route::post('/payment/create', 'create');
         Route::get('/payment/status', 'checkPaymentStatus');
-        Route::post('/payment/success', 'success')->name('payment.success');
-        Route::post('/payment/cancel', 'cancel')->name('payment.cancel');
-        //Route::post('/stripe/webhook', 'handleWebhook');
+        Route::get('/payment/success', 'success')->name('payment.success');
+        Route::get('/payment/cancel', 'cancel')->name('payment.cancel');
+        Route::post('/stripe/webhook', 'handleWebhook');
     });
 });
 

@@ -22,6 +22,12 @@ class PaymentController extends Controller
         $shipment = Shipment::findOrFail($request->shipment_id);
         $user = auth()->user();
 
+        if ($shipment->client_id !== $user->id) {
+            return response()->json([
+                'error' => 'Unauthorized access to shipment'
+            ], 403);
+        }
+
         if (Payment::where('shipment_id', $shipment->id)
             ->where('status', 'succeeded')
             ->exists()) {
@@ -33,6 +39,16 @@ class PaymentController extends Controller
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
         try {
+            $isMobile = $request->header('X-Platform') === 'mobile' || $request->input('platform') === 'mobile';
+
+            $successUrl = $isMobile
+                ? 'yourapp://payment-success?session_id={CHECKOUT_SESSION_ID}'
+                : route('payment.success') . '?session_id={CHECKOUT_SESSION_ID}';
+
+            $cancelUrl = $isMobile
+                ? 'yourapp://payment-cancel?shipment_id=' . $shipment->id
+                : route('payment.cancel') . '?shipment_id=' . $shipment->id;
+
             $session = Session::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [[
@@ -40,15 +56,15 @@ class PaymentController extends Controller
                         'currency' => 'usd',
                         'product_data' => [
                             'name' => 'Shipment #' . $shipment->id,
-                            'description' => 'Shipment delivery service', // إضافة وصف
+                            'description' => 'Shipment delivery service',
                         ],
-                        'unit_amount' => $shipment->delivery_price * 100, // تحويل الدولار إلى سنت
+                        'unit_amount' => $shipment->delivery_price * 100,
                     ],
                     'quantity' => 1,
                 ]],
                 'mode' => 'payment',
-                'success_url' => route('payment.success') . '?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => route('payment.cancel') . '?shipment_id=' . $shipment->id,
+                'success_url' => $successUrl,
+                'cancel_url' => $cancelUrl,
                 'metadata' => [
                     'shipment_id' => $shipment->id,
                     'user_id' => $user->id
@@ -65,10 +81,20 @@ class PaymentController extends Controller
                 'status' => 'pending',
             ]);
 
-            return response()->json([
-                'session_id' => $session->id,
-                'url' => $session->url,
-            ]);
+            if ($isMobile) {
+                return response()->json([
+                    'session_id' => $session->id,
+                    'payment_intent_client_secret' => $session->payment_intent->client_secret,
+                    'publishable_key' => env('STRIPE_KEY'),
+                    'amount' => $shipment->delivery_price,
+                    'currency' => 'usd',
+                ]);
+            } else {
+                return response()->json([
+                    'session_id' => $session->id,
+                    'url' => $session->url,
+                ]);
+            }
 
         } catch (\Exception $e) {
             Log::error('Stripe error: ' . $e->getMessage());
