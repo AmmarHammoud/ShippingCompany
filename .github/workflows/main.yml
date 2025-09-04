@@ -23,5 +23,6 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         local-dir: ./
         remote-path: www/shipping-company
-        git-ftp-args: "--exclude public/* --exclude .git --exclude node_modules"
+        git-ftp-args: "--all --exclude public/* --exclude vendor/* --exclude .env --exclude .git* --exclude node_modules/*"
+        # git-ftp-args: "--exclude public/* --exclude .git --exclude node_modules"
         # dangerous-clean-slate: true
