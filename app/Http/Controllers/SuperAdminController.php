@@ -166,11 +166,10 @@ public function storeCenter(StoreCenterRequest $request)
 
     public function performanceKPIs(Request $request, KpiService $kpiService)
     {
-
         $validator = Validator::make($request->all(), [
             'start_date' => 'required|date_format:Y-m-d',
             'end_date'   => 'required|date_format:Y-m-d|after_or_equal:start_date',
-            'center_id'  => 'required|exists:centers,id',
+            'center_id'  => 'required|integer|min:0', // ✅ السماح بـ 0
         ]);
 
         if ($validator->fails()) {
@@ -178,17 +177,10 @@ public function storeCenter(StoreCenterRequest $request)
                 'errors' => $validator->errors(),
             ], 422);
         }
+
         $startDate = $request->query('start_date');
-        $endDate = $request->query('end_date');
-        $centerId = $request->query('center_id');
-
-        if ($startDate && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate)) {
-            return response()->json(['error' => 'Invalid start_date format. Use YYYY-MM-DD'], 422);
-        }
-
-        if ($endDate && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)) {
-            return response()->json(['error' => 'Invalid end_date format. Use YYYY-MM-DD'], 422);
-        }
+        $endDate   = $request->query('end_date');
+        $centerId  = (int) $request->query('center_id');
 
         $filters = [
             'start_date' => $startDate,
@@ -201,7 +193,8 @@ public function storeCenter(StoreCenterRequest $request)
         $centerName = 'All Centers';
         $managerName = 'N/A';
 
-        if (!empty($centerId)) {
+        // ✅ فقط لو id != 0 نجلب المركز والمدير
+        if ($centerId !== 0) {
             $center = Center::with('manager')->find($centerId);
             if (!$center) {
                 return response()->json(['error' => 'Center not found.'], 404);
@@ -211,7 +204,7 @@ public function storeCenter(StoreCenterRequest $request)
         }
 
         if ($request->query('export') === 'excel') {
-            return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\KpiExport($filters), 'kpi_report.xlsx');
+            return Excel::download(new KpiExport($filters), 'kpi_report.xlsx');
         }
 
         if ($request->query('export') === 'pdf') {
@@ -229,8 +222,11 @@ public function storeCenter(StoreCenterRequest $request)
         return response()->json([
             'message' => 'KPI data retrieved successfully.',
             'data'    => $data,
+            'center'  => $centerName,
+            'manager' => $managerName,
         ]);
     }
+
     public function swapCenterManagers(SwapCenterManagersRequest $request)
     {
         SuperAdminService::swapCenterManagers($request->swaps);
