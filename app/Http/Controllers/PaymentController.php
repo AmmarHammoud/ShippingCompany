@@ -49,7 +49,7 @@ class PaymentController extends Controller
                 ? 'yourapp://payment-cancel?shipment_id=' . $shipment->id
                 : route('payment.cancel') . '?shipment_id=' . $shipment->id;
 
-            // Create the Checkout Session first
+            // إنشاء الجلسة فقط بدون PaymentIntent منفصل
             $session = Session::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [[
@@ -73,8 +73,7 @@ class PaymentController extends Controller
                 'customer_email' => $user->email,
             ]);
 
-            // Create payment record
-            $payment = Payment::create([
+            Payment::create([
                 'user_id' => $user->id,
                 'shipment_id' => $shipment->id,
                 'stripe_session_id' => $session->id,
@@ -83,17 +82,17 @@ class PaymentController extends Controller
                 'status' => 'pending',
             ]);
 
-            // For mobile response, we need to retrieve the payment intent
+            // للحصول على client_secret، نحتاج إلى استرجاع الجلسة مع توسيع payment_intent
             if ($isMobile) {
-                // Retrieve the session with expanded payment_intent
-                $sessionWithIntent = Session::retrieve([
+                // استرجاع الجلسة مع توسيع payment_intent
+                $expandedSession = Session::retrieve([
                     'id' => $session->id,
                     'expand' => ['payment_intent']
                 ]);
 
                 return response()->json([
                     'session_id' => $session->id,
-                    'payment_intent_client_secret' => $sessionWithIntent->payment_intent->client_secret,
+                    'payment_intent_client_secret' => $expandedSession->payment_intent->client_secret,
                     'publishable_key' => env('STRIPE_KEY'),
                     'amount' => $shipment->delivery_price,
                     'currency' => 'usd',
@@ -107,6 +106,7 @@ class PaymentController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Stripe error: ' . $e->getMessage());
+            Log::error('Stripe error trace: ', ['trace' => $e->getTraceAsString()]);
 
             return response()->json([
                 'error' => 'Payment session creation failed',
