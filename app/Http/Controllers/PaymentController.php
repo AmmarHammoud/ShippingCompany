@@ -92,6 +92,13 @@ class PaymentController extends Controller
             } else {
                 return response()->json([
                     'session_id' => $session->id,
+                    'payment_intent_client_secret' => $session->payment_intent->client_secret,
+                    'publishable_key' => env('STRIPE_KEY'),
+                    'amount' => $shipment->delivery_price,
+                    'currency' => 'usd',
+                ]);
+                return response()->json([
+                    'session_id' => $session->id,
                     'url' => $session->url,
                 ]);
             }
