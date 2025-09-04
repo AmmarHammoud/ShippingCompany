@@ -15,7 +15,7 @@ jobs:
     #     username: ammar0hammoud-001
     #     password: ${{secrets.PASSWORD}}
     # Upload everything except public/ to the root (outside wwwroot)
-    
+
     - name: 📂 Upload project to SmarterASP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
@@ -23,7 +23,7 @@ jobs:
         username: ammar0hammoud-001
         password: ${{ secrets.PASSWORD }}
         local-dir: ./
-        remote-path: www/shipping-company
+        remote-path: www/shipping-company/
         git-ftp-args: "--all --exclude public/* --exclude vendor/* --exclude .env --exclude .git* --exclude node_modules/*"
         # git-ftp-args: "--exclude public/* --exclude .git --exclude node_modules"
         # dangerous-clean-slate: true
