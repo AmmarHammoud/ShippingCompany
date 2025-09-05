@@ -20,7 +20,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 Route::get('/login', function () {
     return response()->json(['message' => 'Unauthenticated']);
-})->name('api.login'); //
+})->name('api.login'); //ok
     Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
     Route::post('recipient', [ShipmentController::class, 'storeRecipient']);
     Route::post('details', [ShipmentController::class, 'storeDetails']);
