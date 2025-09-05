@@ -1,0 +1,50 @@
+name: 🚀 Deploy Laravel to SmarterASP
+
+on:
+  push:
+    branches:
+      - main  
+
+jobs:
+  web-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4
+
+    - name: 🛠 Install PHP dependencies
+      run: composer install --no-dev --optimize-autoloader
+
+    - name: ⚡ Cache Laravel
+      run: |
+        php artisan config:cache
+        php artisan route:cache
+        php artisan view:cache
+
+    # ⬆️ ارفع المشروع (بدون public) خارج wwwroot
+    - name: 📂 Upload core Laravel files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      with:
+        server: win8117.site4now.net
+        username: fastship-001
+        password: ${{ secrets.PASSWORD }}
+        local-dir: ./
+        server-dir: www/shipping-company/
+        exclude: |
+          **/public/**
+          **/node_modules/**
+          **/.git/**
+          **/.github/**
+          **/.env
+          **/tests/**
+
+    # ⬆️ ارفع public فقط على wwwroot
+    - name: 📂 Upload public folder
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      with:
+        server: win8117.site4now.net
+        username: fastship-001
+        password: ${{ secrets.PASSWORD }}
+        local-dir: ./public
+        server-dir: wwwroot/
