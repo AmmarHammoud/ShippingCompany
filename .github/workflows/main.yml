@@ -13,28 +13,17 @@ jobs:
     - name: 🚚 Get latest code
       uses: actions/checkout@v4
 
-    # Install dependencies locally, but don't upload vendor
-    - name: 🛠 Install PHP dependencies (local only)
-      run: composer install --no-dev --optimize-autoloader
-
-    - name: ⚡ Cache Laravel
-      run: |
-        php artisan config:cache
-        php artisan route:cache
-        php artisan view:cache
-
-    # Upload Laravel core (incremental, vendor excluded)
+    # Upload Laravel core (without vendor)
     - name: 📂 Upload Laravel core
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
-        server: win8117.site4now.net
-        username: fastship-001
+        server: win8140.site4now.net
+        username: quickship-001
         password: ${{ secrets.PASSWORD }}  
-        local-dir: ./
-        server-dir: /site1/ShippingCompany/   # adjust to your real server path
+        local-dir: ./   # entire project
+        server-dir: /site1/ShippingCompany/   # deploy to shippingcompany directly
         exclude: |
           vendor/**
-          public/**
           node_modules/**
           .git/**
           .github/**
@@ -48,12 +37,11 @@ jobs:
     - name: 📂 Upload public folder
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
-        server: win8117.site4now.net
-        username: fastship-001 
+        server: win8140.site4now.net
+        username: quickship-001
         password: ${{ secrets.PASSWORD }} 
-   
         local-dir: ./public/
-        server-dir: /site1/wwwroot/
+        server-dir: /site1/ShippingCompany/public/
         exclude: |
           .git/**
           node_modules/**
