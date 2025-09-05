@@ -132,14 +132,14 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::controller(ResetPasswordController::class)->group(function () {
-    Route::post('forgotPassword', 'forgotPassword')->name('check.email_password');
-    Route::post('checkCode', 'checkCode')->name('check.email_password');
-    Route::post('resetPassword', 'resetPassword')->name('check.email_password');
+    Route::post('forgotPassword', 'forgotPassword')->name('check.email_forget_password');
+    Route::post('checkCode', 'checkCode')->name('check.code');
+    Route::post('resetPassword', 'resetPassword')->name('check.password_reset');
 });
 
 Route::controller(EmailVerificationController::class)->group(function () {
-    Route::post('verifyEmail', 'verifyEmail')->name('check.email_password');
-    Route::post('resendVerificationCode', 'resendVerificationCode')->name('check.email_password');
+    Route::post('verifyEmail', 'verifyEmail')->name('check.email_verification');
+    Route::post('resendVerificationCode', 'resendVerificationCode')->name('check.verification_code');
 });
 
 Route::get('rating/{ratingId}', [RatingController::class, 'show']);
