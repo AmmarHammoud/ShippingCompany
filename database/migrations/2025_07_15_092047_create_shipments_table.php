@@ -24,7 +24,7 @@ return new class extends Migration
 
             // السائق الذي يوصّل للمستلم
             $table->foreignId('delivery_driver_id')->nullable()->constrained('users')->nullOnDelete();
-            
+
             $table->foreignId('trailer_id')->nullable()->constrained('trailers')->nullOnDelete();
 
             $table->decimal('sender_lat', 10, 7);
@@ -53,6 +53,7 @@ return new class extends Migration
                 'offered_pickup_driver', // بانتظار قبول أول سائق
                 'picked_up',             // السائق الأول أخذها
                 'in_transit_between_centers', // بين مركزين
+                'assigned_to_trailer',
                 'arrived_at_destination_center', // وصلت للمركز الثاني
                 'offered_delivery_driver', // بانتظار قبول سائق التسليم
                 'out_for_delivery',      // خرجت للمستلم
