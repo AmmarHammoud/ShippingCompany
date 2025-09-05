@@ -52,24 +52,25 @@ class CenterManagementController extends Controller
         ]);
     }
 
-    public function getIncomingTrailers()
-    {
-        $result = $this->trailerService->getIncomingTrailers();
-
-        if (!$result['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-                'error' => $result['error'] ?? null
-            ], 500);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $result['data'],
-            'count' => count($result['data'])
-        ]);
-    }
+//     public function getIncomingTrailers()
+//     {
+//         $result = $this->trailerService->getIncomingTrailers();
+//         return response()->json($result['centerId']);
+// //        if (!$result['success']) {
+// //            return response()->json([
+// //                'success' => false,
+// //                'message' => $result['message'],
+// //                'error' => $result['error'] ?? null
+// //            ], 500);
+// //        }
+// //
+// //        return response()->json([
+// //            'success' => true,
+// //            'data' => $result['data'],
+// //            'count' => count($result['data']),
+// //
+// //        ]);
+//     }
 
     public function checkCapacity($trailerId, $shipmentId)
     {
