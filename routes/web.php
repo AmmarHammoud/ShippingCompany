@@ -9,10 +9,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
 Route::get('/login', function () {
-    return response()->json(['message' => 'Unauthenticated']);
+    return view('login');
 })->name('login');
 
 Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDelivery']);
 Route::get('dashboard/performance-kpis', [SuperAdminController::class, 'performanceKPIs']);
 Route::get('rating/{ratingId}', [RatingController::class, 'show']);
+Route::get(dsfsd);
