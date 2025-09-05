@@ -64,41 +64,38 @@ class TrailerService
         }
     }
 
-    // public function getIncomingTrailers()
-    // {
-    //     $centerId = Auth::user()->center->id;
-    //     return ['centerId' => $centerId];
-    //     try {
-    //         $centerId = Auth::user()->center->id;
-    //          return $centerId;
-    //         $incomingTrailers = Trailer::whereHas('shipments', function ($query) use ($centerId) {
-    //             $query->where('center_to_id', $centerId)
-    //                 ->where('status', 'in_transit_between_centers');
-    //         })->with(['shipments' => function ($query) use ($centerId) {
-    //             $query->where('center_to_id', $centerId)
-    //                 ->where('status', 'in_transit_between_centers');
-    //         }, 'center'])->get();
+     public function getIncomingTrailers()
+     {
+         try {
+             $centerId = Auth::user()->center->id;
+             $incomingTrailers = Trailer::whereHas('shipments', function ($query) use ($centerId) {
+                 $query->where('center_to_id', $centerId)
+                     ->where('status', 'in_transit_between_centers');
+             })->with(['shipments' => function ($query) use ($centerId) {
+                 $query->where('center_to_id', $centerId)
+                     ->where('status', 'in_transit_between_centers');
+             }, 'center'])->get();
 
-    //         return [
-    //             'success' => true,
-    //             'message' => 'تم جلب الشاحنات الواردة بنجاح',
-    //             'centerId' => $centerId,
-    //             'data' => [
-    //                 'incoming_trailers' => $incomingTrailers,
-    //                 'count' => $incomingTrailers->count(),
-    //                 'centerId' => $centerId
-    //             ]
-    //         ];
-    //     } catch (\Exception $e) {
-    //         Log::error('Error retrieving incoming trailers: ' . $e->getMessage());
-    //         return [
-    //             'success' => false,
-    //             'message' => 'حدث خطأ أثناء جلب الشاحنات الواردة',
-    //             'error' => $e->getMessage(),
-    //             'status' => 500
-    //         ];
-    //     }
-    // }
+             return [
+                 'success' => true,
+                 'message' => 'تم جلب الشاحنات الواردة بنجاح',
+                 'centerId' => $centerId,
+                 'data' => [
+                     'incoming_trailers' => $incomingTrailers,
+                     'count' => $incomingTrailers->count(),
+                     'centerId' => $centerId
+                 ]
+             ];
+         } catch (\Exception $e) {
+             Log::error('Error retrieving incoming trailers: ' . $e->getMessage());
+             return [
+                 'success' => false,
+                 'message' => 'حدث خطأ أثناء جلب الشاحنات الواردة',
+                 'error' => $e->getMessage(),
+                 'status' => 500
+             ];
+         }
+     }
 
     public function checkCapacity($trailerId, $shipmentId)
     {

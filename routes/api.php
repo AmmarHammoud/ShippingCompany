@@ -104,7 +104,7 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
 
             Route::get('/{trailerId}/check-capacity/{shipmentId}', 'checkCapacity')->name('check-capacity'); // done
             Route::post('/{trailerId}/transfer', 'transferTrailer')->name('transfer');
-            //Route::get('/incomingTrailers', 'getIncomingTrailers');
+            Route::get('/incoming/trailers', 'getIncomingTrailers');
             Route::post('/{trailerId}/arrived', 'arrivedTrailer');
             Route::get('/{trailerId}/shipments-list', 'getTrailerShipments')->name('get-shipments'); // done
         });
