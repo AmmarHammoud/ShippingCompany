@@ -17,4 +17,6 @@ Route::get('/login', function () {
 Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDelivery']);
 Route::get('dashboard/performance-kpis', [SuperAdminController::class, 'performanceKPIs']);
 Route::get('rating/{ratingId}', [RatingController::class, 'show']);
-Route::get(dsfsd);
+Route::get('nothing', function () {
+    echo 'hello';
+});
