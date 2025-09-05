@@ -144,3 +144,4 @@ Route::controller(EmailVerificationController::class)->group(function () {
 
 Route::get('rating/{ratingId}', [RatingController::class, 'show']);
 Route::get('drds', [AuthController::class, 'adsf']);
+//omg new comment
