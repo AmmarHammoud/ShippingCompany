@@ -31,7 +31,7 @@ jobs:
         username: fastship-001
         password: ${{ secrets.PASSWORD }}  
         local-dir: ./
-        server-dir: /site1/shipping-company/   # adjust to your real server path
+        server-dir: /site1/shippingcompany/   # adjust to your real server path
         exclude: |
           vendor/**
           node_modules/**
