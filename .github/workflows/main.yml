@@ -34,7 +34,6 @@ jobs:
         server-dir: /site1/shipping-company/   # adjust to your real server path
         exclude: |
           vendor/**
-          public/**
           node_modules/**
           .git/**
           .github/**
@@ -51,7 +50,6 @@ jobs:
         server: win8117.site4now.net
         username: fastship-001 
         password: ${{ secrets.PASSWORD }} 
-   
         local-dir: ./public/
         server-dir: /site1/wwwroot/
         exclude: |
