@@ -53,7 +53,6 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
     });
 });
 
-
 //super admin
 Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::post('addmanger', [SuperAdminController::class, 'store']);
@@ -125,6 +124,11 @@ Route::middleware(['auth:sanctum', 'role:driver'])->group(function(){
     Route::get('shipments/{barcode}/confirm-pickup', [ShipmentDriverOfferController::class, 'confirmPickupByDriver']);
     Route::get('offers', [ShipmentDriverOfferController::class, 'offersByStatus']);
     Route::post('shipments/{id}/hand-over-to-center', [ShipmentDriverOfferController::class, 'confirmHandOverToCenter']);
+
+    Route::post('/driver/batch/accept', [ShipmentDriverOfferController::class, 'acceptBatch']);
+
+    Route::post('/driver/batch/reject', [ShipmentDriverOfferController::class, 'rejectBatch']);
+
 });
 
 Route::controller(AuthController::class)->group(function () {

@@ -21,13 +21,3 @@ Route::get('rating/{ratingId}', [RatingController::class, 'show']);
 Route::get('nothing', function () {
     echo 'hello';
 });
-
-
-Route::get('/refresh-database', function() {
-    try {
-        Artisan::call('migrate:refresh --seed');
-        return 'Database refreshed and seeded successfully!';
-    } catch (\Exception $e) {
-        return 'Error: ' . $e->getMessage();
-    }
-});

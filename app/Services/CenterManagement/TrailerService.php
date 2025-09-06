@@ -148,10 +148,10 @@ class TrailerService
             $trailer = Trailer::findOrFail($trailerId);
             $shipment = Shipment::findOrFail($shipmentId);
 
-            if ($shipment->status !== 'picked_up') {
+            if ($shipment->status !== 'arrived_at_center') {
                 return [
                     'success' => false,
-                    'message' => 'لا يمكن إضافة الشحنة إلى الشاحنة. يجب أن تكون حالة الشحنة "picked_up"',
+                    'message' => 'لا يمكن إضافة الشحنة إلى الشاحنة. يجب أن تكون حالة الشحنة "arrived_at_center"',
                     'status' => 400
                 ];
             }
@@ -220,7 +220,7 @@ class TrailerService
         }
     }
 
-    public function transferTrailer($trailerId)
+    public function transferTrailer($trailerId, $centerToId)
     {
         try {
             DB::beginTransaction();

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\HandleShipmentOfferRequest;
 use App\Models\Shipment;
 use App\Models\ShipmentDriverOffer;
+use App\Models\User;
+use App\Services\BatchDistributionService;
+use App\Services\ShipmentClusteringService;
 use App\Services\ShipmentDriverOfferService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -271,4 +274,164 @@ class ShipmentDriverOfferController extends Controller
             'shipments' => $shipments,
         ]);
     }
+
+    public function distributeArrivedShipments(Request $request): JsonResponse
+    {
+        $request->validate([
+            'center_id' => 'required|exists:centers,id',
+            'strategy' => 'in:clustering,capacity|required',
+            'max_capacity' => 'required_if:strategy,capacity|numeric|min:0'
+        ]);
+
+        try {
+            // الحصول على الشحنات التي وصلت إلى المركز المستهدف
+            $shipments = Shipment::where('status', 'arrived_at_destination_center')
+                ->where('center_to_id', $request->center_id)
+                ->get();
+
+            if ($shipments->isEmpty()) {
+                return response()->json([
+                    'message' => 'No shipments available for distribution'
+                ], 404);
+            }
+
+            $clusteringService = new ShipmentClusteringService();
+            $distributionService = new BatchDistributionService($clusteringService);
+
+            if ($request->strategy === 'capacity' && $request->max_capacity) {
+                // تجميع بناءً على سعة المركبات
+                $clusters = $clusteringService->clusterShipmentsWithCapacity(
+                    $shipments,
+                    $request->max_capacity
+                );
+
+                // توزيع الدفعات
+                $results = [];
+                foreach ($clusters as $cluster) {
+                    $centroid = $distributionService->calculateClusterCentroid($cluster);
+                    $nearestDriver = $distributionService->findNearestDriver(
+                        $centroid['lat'],
+                        $centroid['lng'],
+                        User::where('role', 'driver')
+                            ->where('center_id', $request->center_id)
+                            ->where('status', 'available')
+                            ->get()
+                    );
+
+                    if ($nearestDriver) {
+                        $results[] = $distributionService->offerBatchToDriver(
+                            $cluster,
+                            $nearestDriver,
+                            'delivery'
+                        );
+                    }
+                }
+            } else {
+                // التجميع الجغرافي العادي
+                $results = $distributionService->distributeShipmentsToDrivers(
+                    $shipments,
+                    $request->center_id
+                );
+            }
+
+            return response()->json([
+                'message' => 'Shipments distributed successfully',
+                'total_shipments' => $shipments->count(),
+                'batches_created' => count($results),
+                'batches' => $results
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Distribution failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * قبول دفعة كاملة من الشحنات
+     */
+    public function acceptBatch(Request $request): JsonResponse
+    {
+        $request->validate([
+            'shipment_ids' => 'required|array',
+            'shipment_ids.*' => 'exists:shipments,id'
+        ]);
+
+        $driver = Auth::user();
+        $acceptedShipments = [];
+
+        DB::beginTransaction();
+        try {
+            foreach ($request->shipment_ids as $shipmentId) {
+                $shipment = Shipment::findOrFail($shipmentId);
+
+                // التحقق من أن العرض لا يزال pending
+                $offer = ShipmentDriverOffer::where('shipment_id', $shipmentId)
+                    ->where('driver_id', $driver->id)
+                    ->where('stage', 'delivery')
+                    ->where('status', 'pending')
+                    ->firstOrFail();
+
+                // تحديث حالة الشحنة
+                $shipment->update([
+                    'delivery_driver_id' => $driver->id,
+                    'status' => 'out_for_delivery',
+                ]);
+
+                // تحديث حالة العرض
+                $offer->update(['status' => 'accepted']);
+
+                $acceptedShipments[] = $shipment;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Batch accepted successfully',
+                'accepted_shipments' => $acceptedShipments
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Failed to accept batch: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * رفض دفعة كاملة من الشحنات
+     */
+    public function rejectBatch(Request $request): JsonResponse
+    {
+        $request->validate([
+            'shipment_ids' => 'required|array',
+            'shipment_ids.*' => 'exists:shipments,id'
+        ]);
+
+        $driver = Auth::user();
+
+        try {
+            foreach ($request->shipment_ids as $shipmentId) {
+                $offer = ShipmentDriverOffer::where('shipment_id', $shipmentId)
+                    ->where('driver_id', $driver->id)
+                    ->where('stage', 'delivery')
+                    ->where('status', 'pending')
+                    ->firstOrFail();
+
+                $offer->update(['status' => 'rejected']);
+            }
+
+            return response()->json([
+                'message' => 'Batch rejected successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to reject batch: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
+
