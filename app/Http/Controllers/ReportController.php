@@ -39,7 +39,7 @@ use AuthorizesRequests;
     {
         try {
            // $this->authorize('viewAny', Report::class);
-            $reports = $this->reportService->getAllReports($request);
+            $reports = $this->reportService->getAllReports($request->all());
             return Response::success('Reports retrieved successfully', $reports);
         } catch (Throwable $th) {
             return Response::error($th->getMessage(), $th->getCode());

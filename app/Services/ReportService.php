@@ -25,7 +25,7 @@ class ReportService
         ]);
     }
 
-    public function getAllReports(array $filters = []): Paginator
+    public function getAllReports($filters = []): Paginator
     {
         $query = Report::with(['user', 'shipment']);
 
