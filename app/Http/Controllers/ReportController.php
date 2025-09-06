@@ -38,7 +38,7 @@ use AuthorizesRequests;
     public function index(Request $request)
     {
         try {
-            $this->authorize('viewAny', Report::class);
+           // $this->authorize('viewAny', Report::class);
             $reports = $this->reportService->getAllReports($request);
             return Response::success('Reports retrieved successfully', $reports);
         } catch (Throwable $th) {
