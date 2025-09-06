@@ -39,7 +39,7 @@ Route::get('/process-queue', function () {
         abort(403);
     }
 
-    Artisan::call('queue:work', ['--stop-when-empty' => true]);
+    Artisan::call('queue:work', ['--stop-when-empty' => false]);
 
     return response()->json(['status' => 'Queue processed successfully']);
 });
