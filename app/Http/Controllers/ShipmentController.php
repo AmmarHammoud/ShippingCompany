@@ -158,11 +158,11 @@ class ShipmentController extends Controller
 
 }
 
-    public function myShipments()
+    public function myShipments(Request $request)
     {
         $user = Auth::user();
 
-        $shipments = ShipmentCreationService::getShipmentsByUser($user);
+        $shipments = ShipmentCreationService::getShipmentsByUser($user, $request->all());
 
         $data = $shipments->map(function ($shipment) {
             return [

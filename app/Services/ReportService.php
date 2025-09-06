@@ -25,9 +25,9 @@ class ReportService
         ]);
     }
 
-    public function getAllReports($filters = []): Paginator
+    public function getAllReports($filters = [])
     {
-        $query = Report::with(['user', 'shipment']);
+        $query = Report::all();
 
         // For non-admins, only show their own reports
         if (!Auth::user()->isAdmin()) {
