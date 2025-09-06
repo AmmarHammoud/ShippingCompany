@@ -55,6 +55,7 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
 
 //super admin
 Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
+    Route::get('/reports', [ReportController::class, 'index']);
     Route::post('addmanger', [SuperAdminController::class, 'store']);
     Route::post('updatemanager/{id}', [SuperAdminController::class, 'update']);
     Route::delete('deletemanager/{id}', [SuperAdminController::class, 'destroy']);
