@@ -4,13 +4,13 @@ namespace App\Events;
 
 use App\Models\Shipment;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\InteractsWithSockets;
 
-class ShipmentDeliveredBroadcast implements ShouldBroadcast
+class ShipmentDeliveredBroadcast implements ShouldBroadcastNow
 {
-    use SerializesModels, InteractsWithSockets;
+    use InteractsWithSockets, SerializesModels;
 
     public Shipment $shipment;
 
@@ -19,8 +19,10 @@ class ShipmentDeliveredBroadcast implements ShouldBroadcast
         $this->shipment = $shipment;
     }
 
+    
     public function broadcastOn(): PrivateChannel
     {
+        // المرسل = client_id
         return new PrivateChannel('client.' . $this->shipment->client_id);
     }
 
@@ -35,6 +37,7 @@ class ShipmentDeliveredBroadcast implements ShouldBroadcast
                 'recipient_name',
                 'updated_at'
             ]),
+            'sender_id' => $this->shipment->client_id // هنا نرسل الـ ID للمرسل
         ];
     }
 
