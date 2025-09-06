@@ -41,7 +41,7 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
         Route::post('/reports', 'store');
         Route::get('/reports/{report}', 'show');
         Route::post('/reports/{report}', 'update');
-        Route::delete('/reports/{report}', 'destroy');
+        Route::delete('/reports/{report_id}', 'destroy');
         Route::get('/reports', 'index');
     });
     Route::controller(PaymentController::class)->group(function () {
@@ -55,7 +55,12 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
 
 //super admin
 Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
-    Route::get('/reports', [ReportController::class, 'index']);
+    Route::controller(ReportController::class)->group(function() {
+        Route::get('/reports/{report}', 'show');
+        Route::delete('/reports/{report}', 'destroy');
+        Route::post('/reports/{report}', 'update');
+        Route::get('/reports', 'index');
+    });
     Route::post('addmanger', [SuperAdminController::class, 'store']);
     Route::post('updatemanager/{id}', [SuperAdminController::class, 'update']);
     Route::delete('deletemanager/{id}', [SuperAdminController::class, 'destroy']);

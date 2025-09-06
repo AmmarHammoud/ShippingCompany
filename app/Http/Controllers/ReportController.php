@@ -77,4 +77,5 @@ use AuthorizesRequests;
             return Response::error($th->getMessage(), $th->getCode());
         }
     }
+
 }
