@@ -33,7 +33,7 @@ jobs:
           storage/framework/sessions/**
           storage/framework/views/**
 
-    # Upload only public folder
+    # Upload only public folder ok
     - name: 📂 Upload public folder
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
