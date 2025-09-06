@@ -33,9 +33,9 @@ class CenterManagementController extends Controller
         $this->shipmentService = $shipmentService;
     }
 
-    public function getAvailableTrailersByCenter($centerId)
+    public function getAvailableTrailersByCenter()
     {
-        $result = $this->trailerService->getAvailableTrailersByCenter($centerId);
+        $result = $this->trailerService->getAvailableTrailersByCenter();
 
         if (!$result['success']) {
             return response()->json([
