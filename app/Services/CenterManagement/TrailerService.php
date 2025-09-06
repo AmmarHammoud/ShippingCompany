@@ -346,9 +346,10 @@ class TrailerService
             if($shipment->status != 'arrived_at_destination_center') {
                 $shipment->status = 'arrived_at_center';
                 $shipment->save();
+            } else {
+                $shipment->status = 'offered_delivery_driver';
+                $shipment->save();
             }
-            $shipment->status = $request->new_status ?? 'arrived_at_destination_center';
-            $shipment->save();
 
             DB::commit();
 
