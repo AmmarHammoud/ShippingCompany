@@ -150,4 +150,22 @@ Route::controller(EmailVerificationController::class)->group(function () {
 
 Route::get('rating/{ratingId}', [RatingController::class, 'show']);
 Route::get('drds', [AuthController::class, 'adsf']);
+Route::get('/pusher-test', function () {
+    try {
+        $pusher = new \Pusher\Pusher(
+            env('PUSHER_APP_KEY'),
+            env('PUSHER_APP_SECRET'),
+            env('PUSHER_APP_ID'),
+            [
+                'cluster' => env('PUSHER_APP_CLUSTER'),
+                'useTLS' => true,
+                'debug' => true, // Enable debug
+            ]
+        );
+        $response = $pusher->trigger('test-channel', 'TestEvent', ['message' => 'Hello manually!']);
+        dd($response);
+    } catch (\Exception $e) {
+        return '❌ Error: ' . $e->getMessage();
+        }
+});
 //omg new comment
