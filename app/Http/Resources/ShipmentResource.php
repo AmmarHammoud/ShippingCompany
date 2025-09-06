@@ -61,7 +61,8 @@ class ShipmentResource extends JsonResource
                 'location' => $this->recipient_location,
                 'lat' => $this->recipient_lat,
                 'lng' => $this->recipient_lng,
-            ]
+            ],
+            'rating' => $this->rating,
         ];
     }
 }

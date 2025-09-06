@@ -19,7 +19,7 @@ class TrailerResource extends JsonResource
             'name' => $this->name,
             'status' => $this->status,
             'center_to_id' => $this->center_to_id,
-            'center_to' => $this->center_to,
+            'center_to' => $this->centerTo,
             'capacity_kg' => $this->capacity_kg,
             'capacity_m3' => $this->capacity_m3,
             'created_at' => $this->created_at,

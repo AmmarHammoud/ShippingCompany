@@ -36,7 +36,7 @@ class TrailerService
                 $availableSize = $trailer->capacity_m3 - $usedSize;
                 if ($availableWeight > 0 && $availableSize > 0) {
                     $availableTrailers[] = [
-                        'trailer' => new TrailerResource($trailer),
+                        'trailer' => $trailer->load('centerTo'),
                         'used_weight' => $usedWeight,
                         'used_size' => $usedSize,
                         'available_weight' => $availableWeight,
