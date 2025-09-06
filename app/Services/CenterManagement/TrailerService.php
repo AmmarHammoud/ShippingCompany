@@ -164,6 +164,14 @@ class TrailerService
                 ];
             }
 
+            if($trailer->center_to_id !== null && $trailer->center_to_id != $shipment->center_to_id) {
+                return [
+                    'success' => false,
+                    'message' => 'لا يمكن إضافة هذه الشحنة لهذه الشاحنة، لأن المركز المتوجه إليه مختلف',
+                    'status' => 400
+                ];
+            }
+
             $usedWeight = $trailer->shipments()->sum('weight');
             $usedSize = $trailer->shipments()->sum('size');
 
@@ -181,6 +189,8 @@ class TrailerService
                     'status' => 400
                 ];
             }
+            $trailer->center_to_id = $shipment->center_to_id;
+            $trailer->save();
 
             $shipment->trailer_id = $trailerId;
             $shipment->status = 'assigned_to_trailer';
@@ -220,7 +230,7 @@ class TrailerService
         }
     }
 
-    public function transferTrailer($trailerId, $centerToId)
+    public function transferTrailer($trailerId)
     {
         try {
             DB::beginTransaction();
@@ -238,6 +248,9 @@ class TrailerService
             $trailer->shipments()->update([
                 'status' => 'in_transit_between_centers',
             ]);
+
+            $trailer->center_to_id = $trailer->shipments[0]->center_to_id;
+            $trailer->save();
 
             DB::commit();
 
@@ -275,14 +288,6 @@ class TrailerService
             DB::beginTransaction();
 
             $trailer = Trailer::findOrFail($trailerId);
-
-//            if ($trailer->shipments()->count() === 0) {
-//                return [
-//                    'success' => false,
-//                    'message' => 'لا يمكن نقل شاحنة فارغة',
-//                    'status' => 400
-//                ];
-//            }
 
             $trailer->center_id = $trailer->shipments[0]->center_to_id;
             $trailer->save();
