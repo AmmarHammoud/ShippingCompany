@@ -173,11 +173,11 @@ class ShipmentCreationService
     public static function cancel(int $shipmentId, $isAdmin = false): Shipment
     {
         $query = Shipment::where('id', $shipmentId);
-        
+
         if (!$isAdmin) {
             $query->where('client_id', Auth::id());
         }
-        
+
         $shipment = $query->firstOrFail();
 
         if (!in_array($shipment->status, ['pending', 'offered_pickup_driver'])) {
@@ -209,13 +209,15 @@ class ShipmentCreationService
         return $shipment;
     }
 
-    public static function getShipmentsByClient(User $client)
+    public static function getShipmentsByUser(User $user)
     {
         return Shipment::with(['recipient', 'centerFrom', 'centerTo'])
-            ->where('client_id', $client->id)
+            ->where(function ($query) use ($user) {
+                $query->where('client_id', $user->id)
+                    ->orWhere('recipient_id', $user->id);
+            })
             ->orderByDesc('created_at')
             ->get();
-
     }
 
     public static function confirmByBarcode(string $barcode)

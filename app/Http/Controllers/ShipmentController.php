@@ -157,12 +157,12 @@ class ShipmentController extends Controller
         }
 
 }
-Public function myShipments()
-{
-$client = Auth::user();
 
+    public function myShipments()
+    {
+        $user = Auth::user();
 
-$shipments = ShipmentCreationService::getShipmentsByClient($client);
+        $shipments = ShipmentCreationService::getShipmentsByUser($user);
 
         $data = $shipments->map(function ($shipment) {
             return [
