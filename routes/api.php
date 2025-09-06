@@ -36,13 +36,14 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
         Route::post('/ratings/{id}', 'update');
         Route::delete('/ratings/{id}', 'destroy');
     });
-
+    Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::controller(ReportController::class)->group(function() {
         Route::post('/reports', 'store');
         Route::get('/reports/{report}', 'show');
         Route::post('/reports/{report}', 'update');
         Route::delete('/reports/{report_id}', 'destroy');
         Route::get('/reports', 'index');
+    });
     });
     Route::controller(PaymentController::class)->group(function () {
         Route::post('/payment/create', 'create');
