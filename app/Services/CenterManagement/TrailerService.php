@@ -15,9 +15,10 @@ use App\Http\Resources\TrailerResource;
 
 class TrailerService
 {
-    public function getAvailableTrailersByCenter($centerId)
+    public function getAvailableTrailersByCenter()
     {
         try {
+            $centerId = Auth::user()->center_id;
             $trailers = Trailer::where('status', 'available')
                 ->where('center_id', $centerId)
                 ->with(['center', 'shipments' => function ($query) {

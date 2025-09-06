@@ -97,7 +97,7 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
 
         // Trailer routes
         Route::prefix('trailers')->name('trailers.')->group(function () {
-            Route::get('/{centerId}', 'getAvailableTrailersByCenter')->name('get-trailers');// done
+            Route::get('/', 'getAvailableTrailersByCenter')->name('get-trailers');// done
             Route::post('/{trailerId}/shipments/{shipmentId}', 'assignToTrailer')->name('add-shipment');//done
             Route::delete('/{trailerId}/shipments/{shipmentId}', 'removeFromTrailer')->name('remove-shipment');//done
 
