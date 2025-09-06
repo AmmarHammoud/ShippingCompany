@@ -36,14 +36,14 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
         Route::post('/ratings/{id}', 'update');
         Route::delete('/ratings/{id}', 'destroy');
     });
-    Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
+    //Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::controller(ReportController::class)->group(function() {
         Route::post('/reports', 'store');
         Route::get('/reports/{report}', 'show');
         Route::post('/reports/{report}', 'update');
         Route::delete('/reports/{report_id}', 'destroy');
         Route::get('/reports', 'index');
-    });
+    //});
     });
     Route::controller(PaymentController::class)->group(function () {
         Route::post('/payment/create', 'create');
@@ -56,12 +56,12 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
 
 //super admin
 Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
-    Route::controller(ReportController::class)->group(function() {
-        Route::get('/reports/{report}', 'show');
-        Route::delete('/reports/{report}', 'destroy');
-        Route::post('/reports/{report}', 'update');
-        Route::get('/reports', 'index');
-    });
+//    Route::controller(ReportController::class)->group(function() {
+//        Route::get('/reports/{report}', 'show');
+//        Route::delete('/reports/{report}', 'destroy');
+//        Route::post('/reports/{report}', 'update');
+//        Route::get('/reports', 'index');
+//    });
     Route::post('addmanger', [SuperAdminController::class, 'store']);
     Route::post('updatemanager/{id}', [SuperAdminController::class, 'update']);
     Route::delete('deletemanager/{id}', [SuperAdminController::class, 'destroy']);
