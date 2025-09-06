@@ -13,7 +13,7 @@ class ShipmentHandedToCenter implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Shipment $shipment;
-
+    public $afterCommit = true;
     public function __construct(Shipment $shipment)
     {
         $this->shipment = $shipment;

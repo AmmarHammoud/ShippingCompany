@@ -14,6 +14,7 @@ class ShipmentOfferResponded implements ShouldBroadcast
 
     public Shipment $shipment;
     public string $response;
+    public $afterCommit = true;
 
     public function __construct(Shipment $shipment, string $response)
     {

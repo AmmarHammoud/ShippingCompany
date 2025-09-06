@@ -15,6 +15,7 @@ class ShipmentOfferedToDriver implements ShouldBroadcast
 
     public Shipment $shipment;
     public int $driverId;
+    public $afterCommit = true;
 
     public function __construct(Shipment $shipment, int $driverId)
     {

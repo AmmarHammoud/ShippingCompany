@@ -14,12 +14,14 @@ class ShipmentDeliveredBroadcast implements ShouldBroadcastNow
 
     public Shipment $shipment;
 
+    public $afterCommit = true;
+
     public function __construct(Shipment $shipment)
     {
         $this->shipment = $shipment;
     }
 
-    
+
     public function broadcastOn(): PrivateChannel
     {
         // المرسل = client_id
