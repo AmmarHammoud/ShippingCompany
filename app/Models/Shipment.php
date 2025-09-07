@@ -77,7 +77,7 @@ class Shipment extends Model
     }
 
     public function isPaid() {
-        return $this->hasOne(Payment::class, 'shipment_id')->exists();
+        return $this->hasOne(Payment::class, 'shipment_id')->where('status', 'paid')->exists();
     }
 
 }

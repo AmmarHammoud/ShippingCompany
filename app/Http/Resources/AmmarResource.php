@@ -49,7 +49,7 @@ class AmmarResource extends JsonResource
                 'email' => $this->client?->email,
             ],
             'rating' => $this->rating,
-            'isPaid' => $this->isPaid
+            'isPaid' => $this->isPaid()
         ];
     }
 }
