@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Responses\Response;
 use App\Mail\DeleteUserMail;
 use App\Mail\VerificationCodeMail;
+use App\Models\Shipment;
 use App\Notifications\Notice;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -156,5 +157,18 @@ class AuthService {
 
         return $user;
     }
+    public function clients(int $centerId): int
+    {
+        $shipments = Shipment::where('center_from_id', $centerId)
+            ->orWhere('center_to_id', $centerId)
+            ->get();
 
+        $userIds = $shipments->pluck('client_id')
+            ->merge($shipments->pluck('recipient_id'))
+            ->unique();
+
+        return User::whereIn('id', $userIds)
+            ->where('role', 'client')
+            ->count();
+    }
 }

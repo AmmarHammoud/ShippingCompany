@@ -85,6 +85,8 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::Post('updateCenter/{id}', [SuperAdminController::class, 'updateCenter']);
     Route::delete('deleteCenter/{id}', [SuperAdminController::class, 'deleteCenter']);
     Route::get('performance-kpis', [SuperAdminController::class, 'performanceKPIs']);
+
+    Route::get('center/clients', [AuthController::class, 'clients']);
 });
 
 Route::middleware(['auth:sanctum', 'role:center_manager'])->group(function () {
