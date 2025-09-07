@@ -28,6 +28,13 @@ class SuperAdminController extends Controller
         $this->centerService = $centerService;
     }
 
+    public function getAllUsers() {
+        return User::all();
+    }
+    public function destroyUser($user_id) {
+        return User::query()->where('id', $user_id)->delete();
+    }
+
     public function store(StoreCenterManagerRequest $request)
     {
         $manager = SuperAdminService::create($request->validated());
