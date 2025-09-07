@@ -155,10 +155,12 @@ Route::middleware(['auth:sanctum', 'role:driver'])->group(function(){
     Route::get('shipments/{barcode}/confirm-pickup', [ShipmentDriverOfferController::class, 'confirmPickupByDriver']);
     Route::get('offers', [ShipmentDriverOfferController::class, 'offersByStatus']);
     Route::post('shipments/{id}/hand-over-to-center', [ShipmentDriverOfferController::class, 'confirmHandOverToCenter']);
+    Route::post('/offers/confirm-out/{barcode}', [ShipmentDriverOfferController::class, 'confirmOutForDeliveryByDriver']); // جديد
+    Route::post('/offers/confirm-delivered/{shipmentId}', [ShipmentDriverOfferController::class, 'confirmHandOverToRecipient']); // جديد
 
-    Route::post('/driver/batch/accept', [ShipmentDriverOfferController::class, 'acceptBatch']);
-
-    Route::post('/driver/batch/reject', [ShipmentDriverOfferController::class, 'rejectBatch']);
+//    Route::post('/driver/batch/accept', [ShipmentDriverOfferController::class, 'acceptBatch']);
+//
+//    Route::post('/driver/batch/reject', [ShipmentDriverOfferController::class, 'rejectBatch']);
 
 
     Route::post('driverupdate',[ShipmentDriverOfferController::class, 'updateDriver']);
@@ -201,4 +203,12 @@ Route::get('/pusher-test', function () {
     } catch (\Exception $e) {
         return '❌ Error: ' . $e->getMessage();
         }
+});
+
+
+
+// routes/api.php
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/offers/confirm-out/{barcode}', [ShipmentDriverOfferController::class, 'confirmOutForDeliveryByDriver']); // جديد
+    Route::post('/offers/confirm-delivered/{shipmentId}', [ShipmentDriverOfferController::class, 'confirmHandOverToRecipient']); // جديد
 });

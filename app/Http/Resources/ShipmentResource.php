@@ -63,6 +63,7 @@ class ShipmentResource extends JsonResource
                 'lng' => $this->recipient_lng,
             ],
             'rating' => $this->rating,
+            'isPaid' => $this->isPaid
         ];
     }
 }
