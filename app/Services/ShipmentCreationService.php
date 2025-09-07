@@ -209,7 +209,7 @@ class ShipmentCreationService
         return $shipment;
     }
 
-    public static function getShipmentsByUser(User $user)
+    public static function getShipmentsByUser(User $user, $filters = [])
     {
         return Shipment::with(['recipient', 'centerFrom', 'centerTo'])
             ->where(function ($query) use ($user) {

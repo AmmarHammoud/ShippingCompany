@@ -15,6 +15,7 @@ class ShipmentOfferedToDriver implements ShouldBroadcastNow
 
     public Shipment $shipment;
     public int $driverId;
+    public $afterCommit = true;
 
     /**
      * Create a new event instance.

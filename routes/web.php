@@ -21,3 +21,25 @@ Route::get('rating/{ratingId}', [RatingController::class, 'show']);
 Route::get('nothing', function () {
     echo 'hello';
 });
+
+
+
+Route::get('/run-schedule', function () {
+    if (request('secret') !== 'your-secret-key-here') {
+        abort(403);
+    }
+
+    Artisan::call('schedule:run');
+
+    return response()->json(['status' => 'Schedule executed successfully']);
+});
+
+Route::get('/process-queue', function () {
+    if (request('secret') !== 'your-secret-key-here') {
+        abort(403);
+    }
+
+    Artisan::call('queue:work', ['--stop-when-empty' => false]);
+
+    return response()->json(['status' => 'Queue processed successfully']);
+});

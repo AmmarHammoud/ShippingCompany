@@ -16,7 +16,7 @@ class ReportService
         if(Report::query()->where('shipment_id', $data['shipment_id'])){
             throw new \Exception('Shipment already reported.', 403);
         }
-        
+
         // Simply create the report
         return Report::create([
             'shipment_id' => $data['shipment_id'],
@@ -25,9 +25,9 @@ class ReportService
         ]);
     }
 
-    public function getAllReports(array $filters = []): Paginator
+    public function getAllReports($filters = [])
     {
-        $query = Report::with(['user', 'shipment']);
+        $query = Report::all();
 
         // For non-admins, only show their own reports
         if (!Auth::user()->isAdmin()) {
