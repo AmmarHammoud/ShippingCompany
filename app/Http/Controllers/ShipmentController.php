@@ -127,6 +127,7 @@ class ShipmentController extends Controller
                     'status' => $shipment->status,
                     'qr_code_url' => $shipment->qr_code_url,
                     'delivered_at' => $shipment->delivered_at,
+                    'isPaid' =>$shipment->isPaid(),
                     'created_at' => $shipment->created_at,
                     'updated_at' => $shipment->updated_at,
 
