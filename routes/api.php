@@ -21,6 +21,9 @@ Route::get('/user', function (Request $request) {
 Route::get('/login', function () {
     return response()->json(['message' => 'Unauthenticated']);
 })->name('api.login'); //ok
+
+
+
     Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
     Route::post('recipient', [ShipmentController::class, 'storeRecipient']);
     Route::post('details', [ShipmentController::class, 'storeDetails']);
@@ -151,6 +154,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->group(function(){
     Route::post('/driver/batch/accept', [ShipmentDriverOfferController::class, 'acceptBatch']);
 
     Route::post('/driver/batch/reject', [ShipmentDriverOfferController::class, 'rejectBatch']);
+
+
+    Route::post('driverupdate',[ShipmentDriverOfferController::class, 'updateDriver']);
 
 });
 

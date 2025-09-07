@@ -22,10 +22,7 @@ class ShipmentFactory extends Factory
             'weight' => $this->faker->numberBetween(1, 100),
             'size' => $this->faker->numberBetween(1, 10),
             'delivery_price' => $this->faker->numberBetween(10, 200),
-            'product_value' => $this->faker->randomFloat(2, 10, 500),
-            'total_amount' => function (array $attributes) {
-                return $attributes['delivery_price'] + $attributes['product_value'];
-            },
+            
             'status' => $this->faker->randomElement([
                 'pending',
                 'offered_pickup_driver',
