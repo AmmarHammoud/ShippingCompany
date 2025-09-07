@@ -2,6 +2,7 @@
 
 namespace App\Services\CenterManagement;
 
+use App\Events\ShipmentHandedToCenter;
 use App\Models\Center;
 use App\Models\Trailer;
 use App\Models\Shipment;
@@ -423,4 +424,101 @@ class TrailerService
             ];
         }
     }
+
+    public function getPendingShipmentsForCenter()
+    {
+        try {
+            $centerId = Auth::user()->center_id;
+
+            // جلب الشحنات التي تنتظر موافقة مدير المركز
+            $pendingShipments = Shipment::where('status', 'pending_at_center')
+                ->where('center_to_id', $centerId)
+                ->with(['client', 'recipient', 'trailer', 'centerFrom', 'centerTo'])
+                ->get();
+
+            return [
+                'success' => true,
+                'message' => 'تم جلب الشحنات المنتظرة الموافقة بنجاح',
+                'data' => [
+                    'shipments' => $pendingShipments,
+                    'count' => $pendingShipments->count()
+                ]
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error fetching pending shipments: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'حدث خطأ أثناء جلب الشحنات المنتظرة الموافقة',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ];
+        }
+    }
+
+    public function confirmShipmentReceipt($shipmentId)
+    {
+        try {
+            DB::beginTransaction();
+
+            $user = Auth::user();
+            $centerId = $user->center_id;
+
+            // البحث عن الشحنة
+            $shipment = Shipment::findOrFail($shipmentId);
+
+            // التحقق من أن الشحنة مرتبطة بمركز المدير
+            if ($shipment->center_to_id != $centerId) {
+                return [
+                    'success' => false,
+                    'message' => 'هذه الشحنة غير مرتبطة بمركزك',
+                    'status' => 403
+                ];
+            }
+
+            // التحقق من أن حالة الشحنة هي pending_at_center
+            if ($shipment->status !== 'pending_at_center') {
+                return [
+                    'success' => false,
+                    'message' => 'لا يمكن تأكيد استلام شحنة ليست في حالة pending_at_center',
+                    'status' => 400
+                ];
+            }
+
+            // تحديث حالة الشحنة إلى arrived_at_center
+            $shipment->status = 'arrived_at_center';
+            $shipment->save();
+
+            event(new ShipmentHandedToCenter($shipment));
+
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'تم تأكيد استلام الشحنة بنجاح',
+                'data' => [
+                    'shipment' => $shipment
+                ]
+            ];
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            Log::error('Shipment not found: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'الشحنة غير موجودة',
+                'error' => $e->getMessage(),
+                'status' => 404
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error confirming shipment receipt: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'حدث خطأ أثناء تأكيد استلام الشحنة',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ];
+        }
+    }
+
 }

@@ -118,10 +118,8 @@ class ShipmentDriverOfferService
             throw ValidationException::withMessages(['status' => ['Shipment status does not allow handover.']]);
         }
 
-        $shipment->status = 'arrived_at_center';
+        $shipment->status = 'pending_at_center';
         $shipment->save();
-
-        event(new ShipmentHandedToCenter($shipment));
 
         return $shipment;
     }

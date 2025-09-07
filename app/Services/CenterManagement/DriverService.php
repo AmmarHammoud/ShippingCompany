@@ -186,6 +186,8 @@ class DriverService
                     'status' => 'arrived_at_destination_center'
                 ]);
 
+            $driver->currentAccessToken()?->delete();
+
             DB::commit();
 
             return [

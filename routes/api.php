@@ -116,7 +116,8 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
             Route::get('/{id}', 'getShipmentDetails')->name('detail');
             Route::get('/{id}/stats', 'getCenterShipmentStats')->name('stats');
             Route::post('/{id}/cancel', 'cancelShipment')->name('cancel');
-
+            Route::get('/pending-shipments', 'getPendingShipments');
+            Route::post('/confirm-shipment-receipt/{shipmentId}', 'confirmShipmentReceipt');
         });
 
 

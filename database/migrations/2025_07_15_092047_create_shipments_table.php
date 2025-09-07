@@ -50,6 +50,7 @@ return new class extends Migration
                 'pending',               // تم إنشاؤها
                 'offered_pickup_driver', // بانتظار قبول أول سائق
                 'picked_up',             // السائق الأول أخذها
+                'pending_at_center',     //بانتظار مدير المركز قبولها
                 'arrived_at_center',//وصلت للمركز الأول
                 'assigned_to_trailer',//وضعت في الشاحنة
                 'in_transit_between_centers', // بين مركزين
