@@ -423,4 +423,27 @@ class TrailerService
             ];
         }
     }
+
+
+    public function createTrailer(array $data): Trailer
+    {
+        $admin = Auth::user();
+
+        if (!$admin || !$admin->center) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'center_id' => ['Admin does not have an assigned center.']
+            ]);
+        }
+
+        $trailer = Trailer::create([
+            'name' => $data['name'],
+            'center_id' => $admin->center->id,  // من توكين الادمن
+            'center_to_id' => $data['center_to_id'] ?? null,
+            'status' => $data['status'],
+            'capacity_kg' => $data['capacity_kg'],
+            'capacity_m3' => $data['capacity_m3'],
+        ]);
+
+        return $trailer;
+    }
 }

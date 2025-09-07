@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTrailerRequest;
 use App\Services\CenterManagement\DriverService;
 use App\Services\CenterManagement\ReportService;
 use App\Services\CenterManagement\ShipmentService;
@@ -565,5 +566,14 @@ class CenterManagementController extends Controller
         }
 
         return response()->json($result['data']);
+    }
+    public function store(StoreTrailerRequest $request)
+    {
+        $trailer = $this->trailerService->createTrailer($request->validated());
+
+        return response()->json([
+            'message' => 'Trailer created successfully.',
+            'trailer' => $trailer
+        ]);
     }
 }
