@@ -24,11 +24,11 @@ return new class extends Migration
 
             // السائق الذي يوصّل للمستلم
             $table->foreignId('delivery_driver_id')->nullable()->constrained('users')->nullOnDelete();
-            
+
             $table->foreignId('trailer_id')->nullable()->constrained('trailers')->nullOnDelete();
 
-            $table->decimal('sender_lat', 10, 7);
-            $table->decimal('sender_lng', 10, 7);
+            $table->decimal('sender_lat', 10, 7)->nullable();
+            $table->decimal('sender_lng', 10, 7)->nullable();
 
             $table->decimal('recipient_lat', 10, 7);
             $table->decimal('recipient_lng', 10, 7);
@@ -41,8 +41,6 @@ return new class extends Migration
             $table->decimal('weight', 8, 2);
             $table->decimal('size')->nullable();//new attribute
             $table->decimal('delivery_price', 20, 2)->default(0);
-            $table->decimal('product_value', 10, 2);
-            $table->decimal('total_amount', 8, 2);
 
             $table->string('invoice_number')->unique();
             $table->string('barcode')->unique();
@@ -52,6 +50,9 @@ return new class extends Migration
                 'pending',               // تم إنشاؤها
                 'offered_pickup_driver', // بانتظار قبول أول سائق
                 'picked_up',             // السائق الأول أخذها
+                'pending_at_center',     //بانتظار مدير المركز قبولها
+                'arrived_at_center',//وصلت للمركز الأول
+                'assigned_to_trailer',//وضعت في الشاحنة
                 'in_transit_between_centers', // بين مركزين
                 'arrived_at_destination_center', // وصلت للمركز الثاني
                 'offered_delivery_driver', // بانتظار قبول سائق التسليم

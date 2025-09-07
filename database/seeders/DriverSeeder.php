@@ -28,6 +28,7 @@ class DriverSeeder extends Seeder
                     'phone' => "093" . $phoneSuffix,
                     'password' => $password,
                     'center_id' => $center->id,
+                    'role' => 'driver',
                     'is_approved' => 1,
                     'active' => 1,
                     'latitude' => $center->latitude + $latVariation,

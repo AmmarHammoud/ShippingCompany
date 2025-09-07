@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('center_id')->constrained('centers')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('center_to_id')->nullable()->constrained('centers')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('status');
             $table->float('capacity_kg');
             $table->float('capacity_m3');

@@ -7,6 +7,7 @@ use App\Http\Requests\ShipmentUpdateRequest;
 use App\Http\Requests\StoreRecipientRequest;
 use App\Http\Requests\StoreShipmentDetailsRequest;
 use App\Http\Requests\StoreShipmentRatingRequest;
+use App\Http\Requests\StoreShipmentRequest;
 use App\Models\Shipment;
 use App\Services\ShipmentCreationService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -65,8 +66,6 @@ class ShipmentController extends Controller
                 'number_of_pieces' => $shipment->number_of_pieces,
                 'weight' => $shipment->weight,
                 'delivery_price' => $shipment->delivery_price,
-                'product_value' => $shipment->product_value,
-                'total_amount' => $shipment->total_amount,
                 'qr_code_url' => $shipment->qr_code_url,
                 'created_at' => $shipment->created_at,
                 'sender_location' => [
@@ -128,6 +127,7 @@ class ShipmentController extends Controller
                     'status' => $shipment->status,
                     'qr_code_url' => $shipment->qr_code_url,
                     'delivered_at' => $shipment->delivered_at,
+                    'isPaid' =>$shipment->isPaid(),
                     'created_at' => $shipment->created_at,
                     'updated_at' => $shipment->updated_at,
 
@@ -157,12 +157,12 @@ class ShipmentController extends Controller
         }
 
 }
-Public function myShipments()
-{
-$client = Auth::user();
 
+    public function myShipments(Request $request)
+    {
+        $user = Auth::user();
 
-$shipments = ShipmentCreationService::getShipmentsByClient($client);
+        $shipments = ShipmentCreationService::getShipmentsByUser($user, $request->all());
 
         $data = $shipments->map(function ($shipment) {
             return [
@@ -270,4 +270,36 @@ $shipments = ShipmentCreationService::getShipmentsByClient($client);
             ], 404);
         }}
 
+    public function storeRecipient2(StoreRecipientRequest $request)
+    {
+        $recipientData = $request->validated();
+
+        $cacheKey = 'recipient_data_' . Auth::id();
+        Cache::put($cacheKey, $recipientData, now()->addMinutes(10));
+
+        return response()->json([
+            'message' => 'Recipient info saved (admin). Proceed to shipment details.'
+        ]);
+    }
+
+    public function storeshipment(StoreShipmentRequest $request)
+    {
+        $cacheKey = 'recipient_data_' . Auth::id();
+        $recipientData = Cache::get($cacheKey);
+
+        if (!$recipientData) {
+            return response()->json(['error' => 'Recipient information not provided'], 422);
+        }
+
+        $shipment = ShipmentCreationService::createByAdmin(
+            $recipientData,
+            $request->validated(),
+            $request->input('client_id') // من الريكويست
+        );
+
+        return response()->json([
+            'message' => 'Shipment created successfully by admin.',
+            'shipment' => $shipment,
+        ]);
+    }
 }

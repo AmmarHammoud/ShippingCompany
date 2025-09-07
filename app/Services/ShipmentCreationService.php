@@ -23,12 +23,13 @@ class ShipmentCreationService
     {
         $recipient = User::where('phone', $recipientData['recipient_phone'])->firstOrFail();
 
-
         if (! $recipient) {
             throw ValidationException::withMessages([
-                'recipient_phone' => ['  recipient not found']
+                'recipient_phone' => ['recipient not found']
             ]);
         }
+
+        // تحديد أقرب مركز للمرسل والمستلم
         $centerFrom = NearestCenterService::getNearestCenter(
             $shipmentData['sender_lat'],
             $shipmentData['sender_lng']
@@ -39,10 +40,12 @@ class ShipmentCreationService
             $recipientData['recipient_lng']
         );
 
+        // إنشاء رقم فاتورة ورمز شريطي
         $lastId = Shipment::max('id') ?? 0;
         $invoice = 'INV-' . date('Y') . '-' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
         $barcode = strtoupper(Str::random(10));
 
+        // حساب سعر التوصيل
         $distance_sender_to_center = OfferShipmentToNearestDriverService::calculateDistance(
             $shipmentData['sender_lat'],
             $shipmentData['sender_lng'],
@@ -62,13 +65,13 @@ class ShipmentCreationService
         $base_fee = 5;
         $distance_fee = $total_distance * 0.05;
         $weight_fee = $shipmentData['weight'] * 0.2;
-
         $delivery_price_usd = $base_fee + $distance_fee + $weight_fee;
         $delivery_price = $delivery_price_usd * $exchange_rate;
 
+        // إنشاء الشحنة
         $shipment = Shipment::create([
             'client_id' => $client->id,
-            'recipient_id'     => $recipient->id,
+            'recipient_id' => $recipient->id,
             'recipient_phone' => $recipient->phone,
             'center_from_id' => $centerFrom->id,
             'center_to_id'   => $centerTo->id,
@@ -81,20 +84,25 @@ class ShipmentCreationService
             'number_of_pieces' => $shipmentData['number_of_pieces'],
             'weight' => $shipmentData['weight'],
             'delivery_price' => $delivery_price,
-            'product_value' => $shipmentData['product_value'],
-            'total_amount' => $shipmentData['product_value'] + $delivery_price,
             'invoice_number' => $invoice,
             'barcode' => $barcode,
             'status' => 'offered_pickup_driver',
         ]);
 
+        // توليد QR Code وحفظه في public
         $confirmationUrl = url("/shipments/{$barcode}/confirm");
-        $driverConfirmationUrl = url("/shipments/{$barcode}/confirm-pickup");
         $qrImage = QrCode::format('svg')->size(300)->generate($confirmationUrl);
-        $filePath = "qr_codes/shipment_{$shipment->id}.svg";
-        Storage::disk('public')->put($filePath, $qrImage);
-        $shipment->update(['qr_code_url' => Storage::url($filePath)]);
+        $fileName = "shipment_{$shipment->id}.svg";
+        $publicPath = public_path("qr_codes/{$fileName}");
 
+        if (!file_exists(dirname($publicPath))) {
+            mkdir(dirname($publicPath), 0755, true);
+        }
+
+        file_put_contents($publicPath, $qrImage);
+        $shipment->update(['qr_code_url' => url("qr_codes/{$fileName}")]);
+
+        // إرسال العرض لأقرب سائق
         OfferShipmentToNearestDriverService::offer($shipment, 'pickup');
 
         return $shipment;
@@ -158,10 +166,7 @@ class ShipmentCreationService
             $exchange_rate  = 10000;
             $new_delivery_price = round($delivery_price_usd * $exchange_rate, 2);
 
-            $old_delivery_price = $shipment->delivery_price;
-
             $shipment->delivery_price = $new_delivery_price;
-            $shipment->total_amount = $shipment->total_amount - $old_delivery_price + $new_delivery_price;
         }
 
         $shipment->fill($data)->save();
@@ -169,15 +174,14 @@ class ShipmentCreationService
         return $shipment;
     }
 
-
     public static function cancel(int $shipmentId, $isAdmin = false): Shipment
     {
         $query = Shipment::where('id', $shipmentId);
-        
+
         if (!$isAdmin) {
             $query->where('client_id', Auth::id());
         }
-        
+
         $shipment = $query->firstOrFail();
 
         if (!in_array($shipment->status, ['pending', 'offered_pickup_driver'])) {
@@ -209,13 +213,15 @@ class ShipmentCreationService
         return $shipment;
     }
 
-    public static function getShipmentsByClient(User $client)
+    public static function getShipmentsByUser(User $user, $filters = [])
     {
         return Shipment::with(['recipient', 'centerFrom', 'centerTo'])
-            ->where('client_id', $client->id)
+            ->where(function ($query) use ($user) {
+                $query->where('client_id', $user->id)
+                    ->orWhere('recipient_id', $user->id);
+            })
             ->orderByDesc('created_at')
             ->get();
-
     }
 
     public static function confirmByBarcode(string $barcode)
@@ -239,5 +245,77 @@ class ShipmentCreationService
 
         broadcast(new ShipmentHandedToCenter($shipment));
     }
+    public static function createByAdmin(array $recipientData, array $shipmentData): Shipment
+    {
+        // المرسل بناءً على رقم الهاتف
+        $client = User::where('phone', $shipmentData['sender_phone'])->firstOrFail();
 
+        // المستلم بناءً على رقم الهاتف
+        $recipient = User::where('phone', $recipientData['recipient_phone'])->firstOrFail();
+
+        // المركز المرسل بناء على مركز الإدمن
+        $admin = auth::user();
+        if (!$admin->center) {
+            throw ValidationException::withMessages([
+                'center_from' => ['Admin does not have an assigned center.']
+            ]);
+        }
+        $centerFrom = $admin->center;
+
+        // تحديد المركز المستلم بناء على إحداثيات المستلم
+        $centerTo = NearestCenterService::getNearestCenter(
+            $recipientData['recipient_lat'],
+            $recipientData['recipient_lng']
+        );
+
+        $lastId = Shipment::max('id') ?? 0;
+        $invoice = 'INV-' . date('Y') . '-' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
+        $barcode = strtoupper(Str::random(10));
+
+        // حساب سعر التوصيل فقط بناء على المسافة بين المركزين
+        $distance_center_to_center = OfferShipmentToNearestDriverService::calculateDistance(
+            $centerFrom->latitude,
+            $centerFrom->longitude,
+            $centerTo->latitude,
+            $centerTo->longitude
+        );
+
+        $exchange_rate = 10000;
+        $base_fee = 5;
+        $distance_fee = $distance_center_to_center * 0.05;
+        $weight_fee = $shipmentData['weight'] * 0.2;
+
+        $delivery_price_usd = $base_fee + $distance_fee + $weight_fee;
+        $delivery_price = $delivery_price_usd * $exchange_rate;
+
+        // إنشاء الشحنة
+        $shipment = Shipment::create([
+            'client_id' => $client->id,
+            'recipient_id' => $recipient->id,
+            'recipient_phone' => $recipient->phone,
+            'center_from_id' => $centerFrom->id,
+            'center_to_id' => $centerTo->id,
+            'recipient_location' => $recipientData['recipient_location'],
+            'recipient_lat' => $recipientData['recipient_lat'],
+            'recipient_lng' => $recipientData['recipient_lng'],
+            'shipment_type' => $shipmentData['shipment_type'],
+            'number_of_pieces' => $shipmentData['number_of_pieces'],
+            'weight' => $shipmentData['weight'],
+            'delivery_price' => $delivery_price,
+            'invoice_number' => $invoice,
+            'barcode' => $barcode,
+            'status' => 'arrived_at_center',
+            'sender_lat' => 0,   // قيم افتراضية
+            'sender_lng' => 0,   // قيم افتراضية
+        ]);
+
+        // توليد QR Code
+        $confirmationUrl = url("/shipments/{$barcode}/confirm");
+        $qrImage = QrCode::format('svg')->size(300)->generate($confirmationUrl);
+        $filePath = "qr_codes/shipment_{$shipment->id}.svg";
+        Storage::disk('public')->put($filePath, $qrImage);
+        $shipment->update(['qr_code_url' => Storage::url($filePath)]);
+
+        return $shipment;
+    }
 }

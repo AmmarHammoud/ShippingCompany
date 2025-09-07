@@ -20,7 +20,10 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 Route::get('/login', function () {
     return response()->json(['message' => 'Unauthenticated']);
-})->name('login');
+})->name('api.login'); //ok
+
+
+
     Route::middleware(['auth:sanctum', 'role:client'])->group( function () {
     Route::post('recipient', [ShipmentController::class, 'storeRecipient']);
     Route::post('details', [ShipmentController::class, 'storeDetails']);
@@ -36,13 +39,14 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
         Route::post('/ratings/{id}', 'update');
         Route::delete('/ratings/{id}', 'destroy');
     });
-
+    //Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::controller(ReportController::class)->group(function() {
         Route::post('/reports', 'store');
         Route::get('/reports/{report}', 'show');
         Route::post('/reports/{report}', 'update');
-        Route::delete('/reports/{report}', 'destroy');
+        Route::delete('/reports/{report_id}', 'destroy');
         Route::get('/reports', 'index');
+    //});
     });
     Route::controller(PaymentController::class)->group(function () {
         Route::post('/payment/create', 'create');
@@ -53,9 +57,22 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
     });
 });
 
-
 //super admin
 Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
+    Route::controller(ReportController::class)->group(function() {
+        Route::prefix('super')->name('drivers.')->group(function () {
+        Route::post('/reports', 'store');
+        Route::get('/reports/{report}', 'show');
+        Route::post('/reports/{report}', 'update');
+        Route::delete('/reports/{report_id}', 'destroy');
+        Route::get('/reports', 'index');
+        });
+    });
+
+    Route::get('users/all', [SuperAdminController::class, 'getAllUsers']);
+    Route::delete('users/delete/{user_id}', [SuperAdminController::class, 'destroyUser']);
+    Route::post('users/block/{user_id}', [SuperAdminController::class, 'blockUser']);
+    Route::post('users/unblock/{user_id}', [SuperAdminController::class, 'unblockUser']);
     Route::post('addmanger', [SuperAdminController::class, 'store']);
     Route::post('updatemanager/{id}', [SuperAdminController::class, 'update']);
     Route::delete('deletemanager/{id}', [SuperAdminController::class, 'destroy']);
@@ -68,6 +85,13 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::Post('updateCenter/{id}', [SuperAdminController::class, 'updateCenter']);
     Route::delete('deleteCenter/{id}', [SuperAdminController::class, 'deleteCenter']);
     Route::get('performance-kpis', [SuperAdminController::class, 'performanceKPIs']);
+
+    Route::get('center/clients', [AuthController::class, 'clients']);
+});
+
+Route::middleware(['auth:sanctum', 'role:center_manager'])->group(function () {
+    Route::post('recipientbyadmin', [ShipmentController::class, 'storeRecipient2']);
+    Route::post('details2', [ShipmentController::class, 'storeShipment']);
 });
 
 Route::middleware(['auth:sanctum', 'role:center_manager'])
@@ -76,7 +100,6 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
     ->controller(CenterManagementController::class)
     ->group(function () {
 
-        // Drivers routes
         Route::prefix('drivers')->name('drivers.')->group(function () {
             Route::post('/', 'createDriver')->name('create');
             Route::get('/', 'getAllDrivers')->name('index');
@@ -94,18 +117,23 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
             Route::get('/{id}', 'getShipmentDetails')->name('detail');
             Route::get('/{id}/stats', 'getCenterShipmentStats')->name('stats');
             Route::post('/{id}/cancel', 'cancelShipment')->name('cancel');
+            Route::get('/pending/shipments', 'getPendingShipments');
+            Route::post('/confirm-shipment-receipt/{shipmentId}', 'confirmShipmentReceipt');
         });
+
 
         // Trailer routes
         Route::prefix('trailers')->name('trailers.')->group(function () {
-            Route::get('/{centerId}', 'getAvailableTrailersByCenter')->name('get-trailers');// done
+            Route::get('/', 'getAvailableTrailersByCenter')->name('get-trailers');// done
             Route::post('/{trailerId}/shipments/{shipmentId}', 'assignToTrailer')->name('add-shipment');//done
             Route::delete('/{trailerId}/shipments/{shipmentId}', 'removeFromTrailer')->name('remove-shipment');//done
 
             Route::get('/{trailerId}/check-capacity/{shipmentId}', 'checkCapacity')->name('check-capacity'); // done
             Route::post('/{trailerId}/transfer', 'transferTrailer')->name('transfer');
+            Route::get('/incoming/trailers', 'getIncomingTrailers');
+            Route::post('/{trailerId}/arrived', 'arrivedTrailer');
             Route::get('/{trailerId}/shipments-list', 'getTrailerShipments')->name('get-shipments'); // done
-        });
+    });
 
         // Reports routes
         Route::prefix('reports')->name('reports.')->group(function () {
@@ -116,6 +144,12 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
     });
 
 
+Route::middleware(['auth:sanctum', 'role:center_manager'])->group( function (){
+        Route::post('addtrailer22', [CenterManagementController::class,'store']);
+    }
+);
+
+
 Route::middleware(['auth:sanctum', 'role:driver'])->group(function(){
     Route::post('offers/{shipment}/accept', [ShipmentDriverOfferController::class, 'acceptOffer']);
     Route::post('offers/{shipment}/reject', [ShipmentDriverOfferController::class, 'rejectOffer']);
@@ -123,6 +157,16 @@ Route::middleware(['auth:sanctum', 'role:driver'])->group(function(){
     Route::get('shipments/{barcode}/confirm-pickup', [ShipmentDriverOfferController::class, 'confirmPickupByDriver']);
     Route::get('offers', [ShipmentDriverOfferController::class, 'offersByStatus']);
     Route::post('shipments/{id}/hand-over-to-center', [ShipmentDriverOfferController::class, 'confirmHandOverToCenter']);
+    Route::post('/offers/confirm-out/{barcode}', [ShipmentDriverOfferController::class, 'confirmOutForDeliveryByDriver']); // جديد
+    Route::post('/offers/confirm-delivered/{shipmentId}', [ShipmentDriverOfferController::class, 'confirmHandOverToRecipient']); // جديد
+
+//    Route::post('/driver/batch/accept', [ShipmentDriverOfferController::class, 'acceptBatch']);
+//
+//    Route::post('/driver/batch/reject', [ShipmentDriverOfferController::class, 'rejectBatch']);
+
+
+    Route::post('driverupdate',[ShipmentDriverOfferController::class, 'updateDriver']);
+
 });
 
 Route::controller(AuthController::class)->group(function () {
@@ -132,15 +176,41 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::controller(ResetPasswordController::class)->group(function () {
-    Route::post('forgotPassword', 'forgotPassword')->name('check.email_password');
-    Route::post('checkCode', 'checkCode')->name('check.email_password');
-    Route::post('resetPassword', 'resetPassword')->name('check.email_password');
+    Route::post('forgotPassword', 'forgotPassword')->name('check.email_forget_password');
+    Route::post('checkCode', 'checkCode')->name('check.code');
+    Route::post('resetPassword', 'resetPassword')->name('check.password_reset');
 });
 
 Route::controller(EmailVerificationController::class)->group(function () {
-    Route::post('verifyEmail', 'verifyEmail')->name('check.email_password');
-    Route::post('resendVerificationCode', 'resendVerificationCode')->name('check.email_password');
+    Route::post('verifyEmail', 'verifyEmail')->name('check.email_verification');
+    Route::post('resendVerificationCode', 'resendVerificationCode')->name('check.verification_code');
 });
 
 Route::get('rating/{ratingId}', [RatingController::class, 'show']);
 Route::get('drds', [AuthController::class, 'adsf']);
+Route::get('/pusher-test', function () {
+    try {
+        $pusher = new \Pusher\Pusher(
+            env('PUSHER_APP_KEY'),
+            env('PUSHER_APP_SECRET'),
+            env('PUSHER_APP_ID'),
+            [
+                'cluster' => env('PUSHER_APP_CLUSTER'),
+                'useTLS' => true,
+                'debug' => true, // Enable debug
+            ]
+        );
+        $response = $pusher->trigger('test-channel', 'TestEvent', ['message' => 'Hello manually!']);
+        dd($response);
+    } catch (\Exception $e) {
+        return '❌ Error: ' . $e->getMessage();
+        }
+});
+
+
+
+// routes/api.php
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/offers/confirm-out/{barcode}', [ShipmentDriverOfferController::class, 'confirmOutForDeliveryByDriver']); // جديد
+    Route::post('/offers/confirm-delivered/{shipmentId}', [ShipmentDriverOfferController::class, 'confirmHandOverToRecipient']); // جديد
+});

@@ -25,8 +25,7 @@ class Shipment extends Model
         'number_of_pieces',
         'weight',
         'delivery_price',
-        'product_value',
-        'total_amount',
+
         'invoice_number',
         'barcode',
         'status',
@@ -64,13 +63,21 @@ class Shipment extends Model
     {
         return $this->hasOne(Rating::class);
     }
-    public function trailer() 
+    public function trailer()
     {
         return $this->belongsTo(Trailer::class);
+    }
+    public function destinationCenter()
+    {
+        return $this->belongsTo(Center::class, 'center_to_id');
     }
     public function expense(){
         return $this->hasOne(Expense::class);
 
     }
- 
+
+    public function isPaid() {
+        return $this->hasOne(Payment::class, 'shipment_id')->where('status', 'paid')->exists();
+    }
+
 }

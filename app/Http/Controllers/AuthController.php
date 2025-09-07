@@ -8,6 +8,7 @@ use App\Http\Requests\SignUpRequest;
 use App\Http\Requests\SignInRequest;
 use App\Services\AuthService;
 use App\Http\Responses\Response;
+use Illuminate\Support\Facades\Auth;
 use Throwable;
 
 class AuthController extends Controller
@@ -70,4 +71,20 @@ class AuthController extends Controller
             return Response::error($throwable->getMessage(), 404);
         }
     }
+
+
+    public function clients(Request $request)
+    {
+        $request->validate([
+            'center_id' => 'required|integer|exists:centers,id',
+        ]);
+
+        $clients = $this->authService->clients($request->center_id);
+
+        return response()->json([
+            'message' => 'Clients retrieved successfully.',
+            'count' => $clients
+        ]);
+    }
+
 }

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTrailerRequest;
 use App\Services\CenterManagement\DriverService;
 use App\Services\CenterManagement\ReportService;
 use App\Services\CenterManagement\ShipmentService;
 use App\Services\CenterManagement\TrailerService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -21,9 +23,9 @@ class CenterManagementController extends Controller
 
     public function __construct
     (
-        TrailerService $trailerService,
-        DriverService $driverService,
-        ReportService $reportService,
+        TrailerService  $trailerService,
+        DriverService   $driverService,
+        ReportService   $reportService,
         ShipmentService $shipmentService,
     )
     {
@@ -33,9 +35,45 @@ class CenterManagementController extends Controller
         $this->shipmentService = $shipmentService;
     }
 
-    public function getAvailableTrailersByCenter($centerId)
+    public function getPendingShipments()
     {
-        $result = $this->trailerService->getAvailableTrailersByCenter($centerId);
+        $result = $this->trailerService->getPendingShipmentsForCenter();
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+                'error' => $result['error'] ?? null
+            ], $result['status'] ?? 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $result['data'],
+            'count' => $result['data']['count']
+        ]);
+    }
+
+    public function confirmShipmentReceipt($shipmentId)
+    {
+        $result = $this->trailerService->confirmShipmentReceipt($shipmentId);
+
+        if (!$result['success']) {
+            return response()->json([
+                'message' => $result['message'],
+                'error' => $result['error'] ?? null
+            ], $result['status'] ?? 500);
+        }
+
+        return response()->json([
+            'message' => $result['message'],
+            'data' => $result['data']
+        ]);
+    }
+
+    public function getAvailableTrailersByCenter()
+    {
+        $result = $this->trailerService->getAvailableTrailersByCenter();
 
         if (!$result['success']) {
             return response()->json([
@@ -51,6 +89,26 @@ class CenterManagementController extends Controller
             'count' => count($result['data'])
         ]);
     }
+
+     public function getIncomingTrailers()
+     {
+         $result = $this->trailerService->getIncomingTrailers();
+         //return response()->json($result['centerId']);
+         if (!$result['success']) {
+             return response()->json([
+                 'success' => false,
+                 'message' => $result['message'],
+                 'error' => $result['error'] ?? null
+             ], 500);
+         }
+
+         return response()->json([
+             'success' => true,
+             'data' => $result['data'],
+             'count' => count($result['data']),
+
+         ]);
+     }
 
     public function checkCapacity($trailerId, $shipmentId)
     {
@@ -86,6 +144,24 @@ class CenterManagementController extends Controller
 
     public function transferTrailer($trailerId)
     {
+        $result = $this->trailerService->transferTrailer($trailerId);
+
+        if (!$result['success']) {
+            return response()->json([
+                'message' => $result['message'],
+                'error' => $result['error'] ?? null
+            ], $result['status'] ?? 500);
+        }
+
+        return response()->json([
+            'message' => $result['message'],
+            'data' => $result['data']
+        ]);
+    }
+
+
+    public function arrivedTrailer($trailerId)
+    {
         // $validator = Validator::make($request->all(), [
         //     'destination_center_id' => 'required|exists:centers,id'
         // ]);
@@ -97,7 +173,7 @@ class CenterManagementController extends Controller
         //     ], 400);
         // }
 
-        $result = $this->trailerService->transferTrailer($trailerId);
+        $result = $this->trailerService->arrivedTrailer($trailerId);
 
         if (!$result['success']) {
             return response()->json([
@@ -223,6 +299,7 @@ class CenterManagementController extends Controller
 
         return response()->json($result['data']);
     }
+
     public function createDriver(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -526,5 +603,14 @@ class CenterManagementController extends Controller
         }
 
         return response()->json($result['data']);
+    }
+    public function store(StoreTrailerRequest $request)
+    {
+        $trailer = $this->trailerService->createTrailer($request->validated());
+
+        return response()->json([
+            'message' => 'Trailer created successfully.',
+            'trailer' => $trailer
+        ]);
     }
 }

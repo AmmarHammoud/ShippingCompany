@@ -2,38 +2,42 @@
 
 namespace App\Services\CenterManagement;
 
+use App\Events\ShipmentHandedToCenter;
+use App\Models\Center;
 use App\Models\Trailer;
 use App\Models\Shipment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Resources\ShipmentResource;
 use App\Http\Resources\TrailerResource;
+
 class TrailerService
 {
-    public function getAvailableTrailersByCenter($centerId)
+    public function getAvailableTrailersByCenter()
     {
         try {
+            $centerId = Auth::user()->center_id;
             $trailers = Trailer::where('status', 'available')
                 ->where('center_id', $centerId)
-                ->with(['center', 'shipments' => function($query) {
+                ->with(['center', 'shipments' => function ($query) {
                     $query->whereIn('status', ['in_transit_between_centers', 'picked_up']);
                 }])
                 ->get();
-            
+
             $availableTrailers = [];
-            
+
             foreach ($trailers as $trailer) {
                 $usedWeight = $trailer->shipments->sum('weight');
                 $usedSize = $trailer->shipments->sum('size');
-                
+
                 $availableWeight = $trailer->capacity_kg - $usedWeight;
                 $availableSize = $trailer->capacity_m3 - $usedSize;
-                
                 if ($availableWeight > 0 && $availableSize > 0) {
                     $availableTrailers[] = [
-                        'trailer' => $trailer,
+                        'trailer' => $trailer->load('centerTo'),
                         'used_weight' => $usedWeight,
                         'used_size' => $usedSize,
                         'available_weight' => $availableWeight,
@@ -45,12 +49,12 @@ class TrailerService
                     ];
                 }
             }
-            
+
             return [
                 'success' => true,
                 'data' => $availableTrailers
             ];
-            
+
         } catch (\Exception $e) {
             Log::error('Error fetching available trailers by center: ' . $e->getMessage());
             return [
@@ -60,7 +64,40 @@ class TrailerService
             ];
         }
     }
-    
+
+     public function getIncomingTrailers()
+     {
+         try {
+             $centerId = Auth::user()->center->id;
+             $incomingTrailers = Trailer::whereHas('shipments', function ($query) use ($centerId) {
+                 $query->where('center_to_id', $centerId)
+                     ->where('status', 'in_transit_between_centers');
+             })->with(['shipments' => function ($query) use ($centerId) {
+                 $query->where('center_to_id', $centerId)
+                     ->where('status', 'in_transit_between_centers');
+             }, 'center'])->get();
+
+             return [
+                 'success' => true,
+                 'message' => 'تم جلب الشاحنات الواردة بنجاح',
+                 'centerId' => $centerId,
+                 'data' => [
+                     'incoming_trailers' => $incomingTrailers,
+                     'count' => $incomingTrailers->count(),
+                     'centerId' => $centerId
+                 ]
+             ];
+         } catch (\Exception $e) {
+             Log::error('Error retrieving incoming trailers: ' . $e->getMessage());
+             return [
+                 'success' => false,
+                 'message' => 'حدث خطأ أثناء جلب الشاحنات الواردة',
+                 'error' => $e->getMessage(),
+                 'status' => 500
+             ];
+         }
+     }
+
     public function checkCapacity($trailerId, $shipmentId)
     {
         try {
@@ -73,8 +110,8 @@ class TrailerService
             $availableWeight = $trailer->capacity_kg - $usedWeight;
             $availableSize = $trailer->capacity_m3 - $usedSize;
 
-            $canAdd = ($shipment->weight <= $availableWeight) && 
-                     ($shipment->size <= $availableSize);
+            $canAdd = ($shipment->weight <= $availableWeight) &&
+                ($shipment->size <= $availableSize);
 
             return [
                 'success' => true,
@@ -112,10 +149,26 @@ class TrailerService
             $trailer = Trailer::findOrFail($trailerId);
             $shipment = Shipment::findOrFail($shipmentId);
 
-            if ($shipment->status !== 'picked_up') {
+            if ($shipment->status !== 'arrived_at_center') {
                 return [
                     'success' => false,
-                    'message' => 'لا يمكن إضافة الشحنة إلى الشاحنة. يجب أن تكون حالة الشحنة "picked_up"',
+                    'message' => 'لا يمكن إضافة الشحنة إلى الشاحنة. يجب أن تكون حالة الشحنة "arrived_at_center"',
+                    'status' => 400
+                ];
+            }
+
+            if($trailer->status !== 'available') {
+                return [
+                    'success' => false,
+                    'message' => 'هذه الشاحنة تحت الصيانة، لا يمكن إضافة الشحنة إليها.',
+                    'status' => 400
+                ];
+            }
+
+            if($trailer->center_to_id !== null && $trailer->center_to_id != $shipment->center_to_id) {
+                return [
+                    'success' => false,
+                    'message' => 'لا يمكن إضافة هذه الشحنة لهذه الشاحنة، لأن المركز المتوجه إليه مختلف',
                     'status' => 400
                 ];
             }
@@ -137,9 +190,11 @@ class TrailerService
                     'status' => 400
                 ];
             }
+            $trailer->center_to_id = $shipment->center_to_id;
+            $trailer->save();
 
             $shipment->trailer_id = $trailerId;
-            $shipment->status = 'in_transit_between_centers';
+            $shipment->status = 'assigned_to_trailer';
             $shipment->save();
 
             DB::commit();
@@ -191,19 +246,62 @@ class TrailerService
                 ];
             }
 
+            $trailer->shipments()->update([
+                'status' => 'in_transit_between_centers',
+            ]);
+
+            $trailer->center_to_id = $trailer->shipments[0]->center_to_id;
+            $trailer->save();
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'تم إرسال الشاحنة إلى المركز الجديد بنجاح',
+                'data' => [
+                    'trailer' => $trailer->load('shipments', 'center')
+                ]
+            ];
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            Log::error('Model not found: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'الشاحنة غير موجودة',
+                'error' => $e->getMessage(),
+                'status' => 404
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error transferring trailer: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'حدث خطأ أثناء إرسال الشاحنة',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ];
+        }
+    }
+
+    public function arrivedTrailer($trailerId)
+    {
+        try {
+            DB::beginTransaction();
+
+            $trailer = Trailer::findOrFail($trailerId);
+
             $trailer->center_id = $trailer->shipments[0]->center_to_id;
             $trailer->save();
 
             $trailer->shipments()->update([
                 'status' => 'arrived_at_destination_center',
-                'center_to_id' => $trailer->center_id
             ]);
 
             DB::commit();
 
             return [
                 'success' => true,
-                'message' => 'تم نقل الشاحنة إلى المركز الجديد بنجاح',
+                'message' => 'تم استلام الشحنة بنجاح',
                 'data' => [
                     'trailer' => $trailer->load('shipments', 'center')
                 ]
@@ -246,8 +344,13 @@ class TrailerService
             }
 
             $shipment->trailer_id = null;
-            $shipment->status = $request->new_status ?? 'arrived_at_destination_center';
-            $shipment->save();
+            if($shipment->status != 'arrived_at_destination_center') {
+                $shipment->status = 'arrived_at_center';
+                $shipment->save();
+            } else {
+                $shipment->status = 'offered_delivery_driver';
+                $shipment->save();
+            }
 
             DB::commit();
 
@@ -279,7 +382,7 @@ class TrailerService
             ];
         }
     }
-    
+
     public function getTrailerShipments($trailerId)
     {
         try {
@@ -316,6 +419,123 @@ class TrailerService
             return [
                 'success' => false,
                 'message' => 'حدث خطأ أثناء جلب بيانات الشاحنة',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ];
+        }
+    }
+    public function createTrailer(array $data): Trailer
+    {
+        $admin = Auth::user();
+
+        if (!$admin || !$admin->center) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'center_id' => ['Admin does not have an assigned center.']
+            ]);
+        }
+
+        $trailer = Trailer::create([
+            'name' => $data['name'],
+            'center_id' => $admin->center->id,  // من توكين الادمن
+            'center_to_id' => $data['center_to_id'] ?? null,
+            'status' => $data['status'],
+            'capacity_kg' => $data['capacity_kg'],
+            'capacity_m3' => $data['capacity_m3'],
+        ]);
+
+        return $trailer;
+    }
+
+    public function getPendingShipmentsForCenter()
+    {
+        try {
+            $centerId = Auth::user()->center_id;
+
+            // جلب الشحنات التي تنتظر موافقة مدير المركز
+            $pendingShipments = Shipment::where('status', 'pending_at_center')
+                ->where('center_to_id', $centerId)
+                ->with(['client', 'recipient', 'trailer', 'centerFrom', 'centerTo'])
+                ->get();
+
+            return [
+                'success' => true,
+                'message' => 'تم جلب الشحنات المنتظرة الموافقة بنجاح',
+                'data' => [
+                    'shipments' => $pendingShipments,
+                    'count' => $pendingShipments->count()
+                ]
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error fetching pending shipments: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'حدث خطأ أثناء جلب الشحنات المنتظرة الموافقة',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ];
+        }
+    }
+
+    public function confirmShipmentReceipt($shipmentId)
+    {
+        try {
+            DB::beginTransaction();
+
+            $user = Auth::user();
+            $centerId = $user->center_id;
+
+            // البحث عن الشحنة
+            $shipment = Shipment::findOrFail($shipmentId);
+
+            // التحقق من أن الشحنة مرتبطة بمركز المدير
+            if ($shipment->center_to_id != $centerId) {
+                return [
+                    'success' => false,
+                    'message' => 'هذه الشحنة غير مرتبطة بمركزك',
+                    'status' => 403
+                ];
+            }
+
+            // التحقق من أن حالة الشحنة هي pending_at_center
+            if ($shipment->status !== 'pending_at_center') {
+                return [
+                    'success' => false,
+                    'message' => 'لا يمكن تأكيد استلام شحنة ليست في حالة pending_at_center',
+                    'status' => 400
+                ];
+            }
+
+            // تحديث حالة الشحنة إلى arrived_at_center
+            $shipment->status = 'arrived_at_center';
+            $shipment->save();
+
+            event(new ShipmentHandedToCenter($shipment));
+
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'تم تأكيد استلام الشحنة بنجاح',
+                'data' => [
+                    'shipment' => $shipment
+                ]
+            ];
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            Log::error('Shipment not found: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'الشحنة غير موجودة',
+                'error' => $e->getMessage(),
+                'status' => 404
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error confirming shipment receipt: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'حدث خطأ أثناء تأكيد استلام الشحنة',
                 'error' => $e->getMessage(),
                 'status' => 500
             ];

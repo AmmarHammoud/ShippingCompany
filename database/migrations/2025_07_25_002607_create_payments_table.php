@@ -15,7 +15,7 @@ return new class extends Migration
         $table->id();
         $table->foreignId('user_id')->constrained();
         $table->foreignId('shipment_id')->constrained();
-        $table->string('stripe_session_id');
+        $table->string('stripe_session_id')->nullable();
         $table->string('stripe_payment_id')->nullable();
         $table->integer('amount');
         $table->string('currency', 3);

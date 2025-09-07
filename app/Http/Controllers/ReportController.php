@@ -38,8 +38,8 @@ use AuthorizesRequests;
     public function index(Request $request)
     {
         try {
-            $this->authorize('viewAny', Report::class);
-            $reports = $this->reportService->getAllReports($request);
+           // $this->authorize('viewAny', Report::class);
+            $reports = $this->reportService->getAllReports($request->all());
             return Response::success('Reports retrieved successfully', $reports);
         } catch (Throwable $th) {
             return Response::error($th->getMessage(), $th->getCode());
@@ -49,7 +49,7 @@ use AuthorizesRequests;
     public function show(Report $report)
     {
         try {
-            $this->authorize('view', $report);
+            //$this->authorize('view', $report);
             return Response::success('Report details retrieved', $report);
         } catch (Throwable $th) {
             return Response::error($th->getMessage(), $th->getCode());
@@ -59,7 +59,7 @@ use AuthorizesRequests;
     public function update(UpdateReportRequest $request, Report $report)
     {
         try {
-            $this->authorize('update', $report);
+            //$this->authorize('update', $report);
             $updatedReport = $this->reportService->updateReport($report, $request->validated());
             return Response::success('Report updated successfully', $updatedReport);
         } catch (Throwable $th) {
@@ -70,11 +70,12 @@ use AuthorizesRequests;
     public function destroy(Report $report)
     {
         try {
-            $this->authorize('delete', $report);
+            //$this->authorize('delete', $report);
             $this->reportService->deleteReport($report);
             return Response::success('Report deleted successfully');
         } catch (Throwable $th) {
             return Response::error($th->getMessage(), $th->getCode());
         }
     }
+
 }

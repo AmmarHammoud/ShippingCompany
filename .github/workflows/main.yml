@@ -1,29 +1,47 @@
-on: push
-name: 🚀 Deploy website on push
+name: 🚀 Deploy Laravel to SmarterASP
+
+on:
+  push:
+    branches:
+      - main   # deploy only when pushing to main branch
+
 jobs:
   web-deploy:
-    name: 🎉 Deploy
     runs-on: ubuntu-latest
+
     steps:
     - name: 🚚 Get latest code
       uses: actions/checkout@v4
-    
-    # - name: 📂 Sync files
-    #   uses: SamKirkland/FTP-Deploy-Action@v4.3.6
-    #   with:
-    #     server: win9081.site4now.net
-    #     username: ammar0hammoud-001
-    #     password: ${{secrets.PASSWORD}}
-    # Upload everything except public/ to the root (outside wwwroot)
 
-    - name: 📂 Upload project to SmarterASP
+    # Upload Laravel core (without vendor)
+    - name: 📂 Upload Laravel core
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
-        server: win9081.site4now.net
-        username: ammar0hammoud-001
-        password: ${{ secrets.PASSWORD }}
-        local-dir: ./
-        remote-path: www/shipping-company/
-        git-ftp-args: "--all --exclude public/* --exclude vendor/* --exclude .env --exclude .git* --exclude node_modules/*"
-        # git-ftp-args: "--exclude public/* --exclude .git --exclude node_modules"
-        # dangerous-clean-slate: true
+        server: win8140.site4now.net
+        username: quickship-001
+        password: ${{ secrets.PASSWORD }}  
+        local-dir: ./   # entire project
+        server-dir: /site1/ShippingCompany/   # deploy to shippingcompany directly
+        exclude: |
+          vendor/**
+          node_modules/**
+          .git/**
+          .github/**
+          .env
+          tests/**
+          storage/framework/cache/data/**
+          storage/framework/sessions/**
+          storage/framework/views/**
+
+    # Upload only public folder ok
+    - name: 📂 Upload public folder
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      with:
+        server: win8140.site4now.net
+        username: quickship-001
+        password: ${{ secrets.PASSWORD }} 
+        local-dir: ./public/
+        server-dir: /site1/ShippingCompany/public/
+        exclude: |
+          .git/**
+          node_modules/**

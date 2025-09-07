@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Stripe\Stripe;
+use Stripe\PaymentIntent;
 use Stripe\Checkout\Session;
 use Stripe\Webhook;
 use App\Models\Shipment;
@@ -41,70 +42,80 @@ class PaymentController extends Controller
         try {
             $isMobile = $request->header('X-Platform') === 'mobile' || $request->input('platform') === 'mobile';
 
-            $successUrl = $isMobile
-                ? 'yourapp://payment-success?session_id={CHECKOUT_SESSION_ID}'
-                : route('payment.success') . '?session_id={CHECKOUT_SESSION_ID}';
-
-            $cancelUrl = $isMobile
-                ? 'yourapp://payment-cancel?shipment_id=' . $shipment->id
-                : route('payment.cancel') . '?shipment_id=' . $shipment->id;
-
-            $session = Session::create([
-                'payment_method_types' => ['card'],
-                'line_items' => [[
-                    'price_data' => [
-                        'currency' => 'usd',
-                        'product_data' => [
-                            'name' => 'Shipment #' . $shipment->id,
-                            'description' => 'Shipment delivery service',
-                        ],
-                        'unit_amount' => $shipment->delivery_price * 100,
-                    ],
-                    'quantity' => 1,
-                ]],
-                'mode' => 'payment',
-                'success_url' => $successUrl,
-                'cancel_url' => $cancelUrl,
-                'metadata' => [
-                    'shipment_id' => $shipment->id,
-                    'user_id' => $user->id
-                ],
-                'customer_email' => $user->email,
-            ]);
-
-            Payment::create([
-                'user_id' => $user->id,
-                'shipment_id' => $shipment->id,
-                'stripe_session_id' => $session->id,
-                'amount' => $shipment->delivery_price,
-                'currency' => 'usd',
-                'status' => 'pending',
-            ]);
-
             if ($isMobile) {
+                // 🔹 Create PaymentIntent for mobile flow
+                $paymentIntent = PaymentIntent::create([
+                    'amount' => $shipment->delivery_price * 100, // amount in cents
+                    'currency' => 'usd',
+                    'metadata' => [
+                        'shipment_id' => $shipment->id,
+                        'user_id' => $user->id,
+                    ],
+                    'receipt_email' => $user->email,
+                    'automatic_payment_methods' => [
+                        'enabled' => true, // supports Apple Pay, Google Pay, etc.
+                    ],
+                ]);
+
+                // Save in DB
+                Payment::create([
+                    'user_id' => $user->id,
+                    'shipment_id' => $shipment->id,
+                    'stripe_payment_id' => $paymentIntent->id,
+                    'amount' => $shipment->delivery_price,
+                    'currency' => 'usd',
+                    'status' => 'pending',
+                ]);
+
                 return response()->json([
-                    'session_id' => $session->id,
-                    'payment_intent_client_secret' => $session->payment_intent->client_secret,
+                    'payment_intent_id' => $paymentIntent->id,
+                    'client_secret' => $paymentIntent->client_secret,
                     'publishable_key' => env('STRIPE_KEY'),
                     'amount' => $shipment->delivery_price,
                     'currency' => 'usd',
                 ]);
             } else {
-                return response()->json([
-                    'session_id' => $session->id,
-                    'payment_intent_client_secret' => $session->payment_intent->client_secret,
-                    'publishable_key' => env('STRIPE_KEY'),
+                // 🔹 Keep Checkout Session for web flow
+                $session = Session::create([
+                    'payment_method_types' => ['card'],
+                    'line_items' => [[
+                        'price_data' => [
+                            'currency' => 'usd',
+                            'product_data' => [
+                                'name' => 'Shipment #' . $shipment->id,
+                                'description' => 'Shipment delivery service',
+                            ],
+                            'unit_amount' => $shipment->delivery_price * 100,
+                        ],
+                        'quantity' => 1,
+                    ]],
+                    'mode' => 'payment',
+                    'success_url' => route('payment.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                    'cancel_url' => route('payment.cancel') . '?shipment_id=' . $shipment->id,
+                    'metadata' => [
+                        'shipment_id' => $shipment->id,
+                        'user_id' => $user->id
+                    ],
+                    'customer_email' => $user->email,
+                ]);
+
+                Payment::create([
+                    'user_id' => $user->id,
+                    'shipment_id' => $shipment->id,
+                    'stripe_session_id' => $session->id,
                     'amount' => $shipment->delivery_price,
                     'currency' => 'usd',
+                    'status' => 'pending',
                 ]);
+
                 return response()->json([
                     'session_id' => $session->id,
                     'url' => $session->url,
                 ]);
             }
-
         } catch (\Exception $e) {
             Log::error('Stripe error: ' . $e->getMessage());
+            Log::error('Stripe error trace: ', ['trace' => $e->getTraceAsString()]);
 
             return response()->json([
                 'error' => 'Payment session creation failed',
@@ -216,10 +227,10 @@ class PaymentController extends Controller
     public function success(Request $request)
     {
         $request->validate([
-            'session_id' => 'required'
+            'payment_intent_id' => 'required'
         ]);
 
-        $payment = Payment::where('stripe_session_id', $request->session_id)->first();
+        $payment = Payment::where('stripe_payment_id', $request->payment_intent_id)->first();
 
         if (!$payment) {
             return Response::error('Payment not found', [], 404);
