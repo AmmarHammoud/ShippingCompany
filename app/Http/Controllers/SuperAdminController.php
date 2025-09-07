@@ -29,10 +29,17 @@ class SuperAdminController extends Controller
     }
 
     public function getAllUsers() {
-        return User::all();
+        return response()->json([
+            'success' => true,
+            'users' => User::all()
+        ], 200);
     }
+
     public function destroyUser($user_id) {
-        return User::query()->where('id', $user_id)->delete();
+        return response()->json([
+            'success' => User::query()->where('id', $user_id)->delete(),
+            'message' => 'User has been deleted successfully',
+        ], 200);
     }
 
     public function store(StoreCenterManagerRequest $request)
