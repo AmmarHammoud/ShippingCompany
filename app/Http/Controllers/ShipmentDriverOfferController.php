@@ -30,7 +30,7 @@ class ShipmentDriverOfferController extends Controller
     public function acceptOffer(Request $request, int $shipmentId): JsonResponse
     {
         try {
-            $stageParam = $request->query('stage'); // optional: pickup|delivery
+                $stageParam = $request->query('stage'); // optional: pickup|delivery
             if ($stageParam !== null && !in_array($stageParam, ['pickup','delivery'])) {
                 return response()->json(['error' => 'Invalid stage. Allowed: pickup, delivery'], 422);
             }
