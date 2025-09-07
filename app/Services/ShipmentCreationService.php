@@ -29,6 +29,7 @@ class ShipmentCreationService
             ]);
         }
 
+        // تحديد أقرب مركز للمرسل والمستلم
         $centerFrom = NearestCenterService::getNearestCenter(
             $shipmentData['sender_lat'],
             $shipmentData['sender_lng']
@@ -39,10 +40,12 @@ class ShipmentCreationService
             $recipientData['recipient_lng']
         );
 
+        // إنشاء رقم فاتورة ورمز شريطي
         $lastId = Shipment::max('id') ?? 0;
         $invoice = 'INV-' . date('Y') . '-' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
         $barcode = strtoupper(Str::random(10));
 
+        // حساب سعر التوصيل
         $distance_sender_to_center = OfferShipmentToNearestDriverService::calculateDistance(
             $shipmentData['sender_lat'],
             $shipmentData['sender_lng'],
@@ -62,11 +65,10 @@ class ShipmentCreationService
         $base_fee = 5;
         $distance_fee = $total_distance * 0.05;
         $weight_fee = $shipmentData['weight'] * 0.2;
-
         $delivery_price_usd = $base_fee + $distance_fee + $weight_fee;
         $delivery_price = $delivery_price_usd * $exchange_rate;
 
-        // إنشاء الشحنة بدون product_value وبدون total_amount
+        // إنشاء الشحنة
         $shipment = Shipment::create([
             'client_id' => $client->id,
             'recipient_id' => $recipient->id,
@@ -87,13 +89,20 @@ class ShipmentCreationService
             'status' => 'offered_pickup_driver',
         ]);
 
+        // توليد QR Code وحفظه في public
         $confirmationUrl = url("/shipments/{$barcode}/confirm");
-        $driverConfirmationUrl = url("/shipments/{$barcode}/confirm-pickup");
         $qrImage = QrCode::format('svg')->size(300)->generate($confirmationUrl);
-        $filePath = "qr_codes/shipment_{$shipment->id}.svg";
-        Storage::disk('public')->put($filePath, $qrImage);
-        $shipment->update(['qr_code_url' => Storage::url($filePath)]);
+        $fileName = "shipment_{$shipment->id}.svg";
+        $publicPath = public_path("qr_codes/{$fileName}");
 
+        if (!file_exists(dirname($publicPath))) {
+            mkdir(dirname($publicPath), 0755, true);
+        }
+
+        file_put_contents($publicPath, $qrImage);
+        $shipment->update(['qr_code_url' => url("qr_codes/{$fileName}")]);
+
+        // إرسال العرض لأقرب سائق
         OfferShipmentToNearestDriverService::offer($shipment, 'pickup');
 
         return $shipment;
