@@ -27,8 +27,8 @@ return new class extends Migration
 
             $table->foreignId('trailer_id')->nullable()->constrained('trailers')->nullOnDelete();
 
-            $table->decimal('sender_lat', 10, 7);
-            $table->decimal('sender_lng', 10, 7);
+            $table->decimal('sender_lat', 10, 7)->nullable();
+            $table->decimal('sender_lng', 10, 7)->nullable();
 
             $table->decimal('recipient_lat', 10, 7);
             $table->decimal('recipient_lng', 10, 7);
