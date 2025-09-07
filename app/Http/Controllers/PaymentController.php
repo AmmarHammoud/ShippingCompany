@@ -227,10 +227,10 @@ class PaymentController extends Controller
     public function success(Request $request)
     {
         $request->validate([
-            'session_id' => 'required'
+            'payment_intent_id' => 'required'
         ]);
 
-        $payment = Payment::where('stripe_session_id', $request->session_id)->first();
+        $payment = Payment::where('stripe_payment_id', $request->payment_intent_id)->first();
 
         if (!$payment) {
             return Response::error('Payment not found', [], 404);
