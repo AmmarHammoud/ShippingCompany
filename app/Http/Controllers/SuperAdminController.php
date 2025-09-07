@@ -72,6 +72,7 @@ class SuperAdminController extends Controller
                         'status' => 'arrived_at_destination_center'
                     ]);
             }
+            $user->currentAccessToken()->delete();
             DB::commit();
 
             return [
@@ -105,7 +106,7 @@ class SuperAdminController extends Controller
     public function unblockUser($user_id)
     {
         try {
-            $user = User::role('driver')->findOrFail($user_id);
+            $user = User::findOrFail($user_id);
 
             $user->update([
                 'active' => true,

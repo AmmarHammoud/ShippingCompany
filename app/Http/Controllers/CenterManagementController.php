@@ -7,6 +7,7 @@ use App\Services\CenterManagement\DriverService;
 use App\Services\CenterManagement\ReportService;
 use App\Services\CenterManagement\ShipmentService;
 use App\Services\CenterManagement\TrailerService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -34,8 +35,40 @@ class CenterManagementController extends Controller
         $this->shipmentService = $shipmentService;
     }
 
-    public function confirmShipmentReceiving($shipment_id){
+    public function getPendingShipments()
+    {
+        $result = $this->trailerService->getPendingShipmentsForCenter();
 
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+                'error' => $result['error'] ?? null
+            ], $result['status'] ?? 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $result['data'],
+            'count' => $result['data']['count']
+        ]);
+    }
+
+    public function confirmShipmentReceipt($shipmentId)
+    {
+        $result = $this->trailerService->confirmShipmentReceipt($shipmentId);
+
+        if (!$result['success']) {
+            return response()->json([
+                'message' => $result['message'],
+                'error' => $result['error'] ?? null
+            ], $result['status'] ?? 500);
+        }
+
+        return response()->json([
+            'message' => $result['message'],
+            'data' => $result['data']
+        ]);
     }
 
     public function getAvailableTrailersByCenter()

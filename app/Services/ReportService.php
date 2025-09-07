@@ -30,7 +30,7 @@ class ReportService
         $query = Report::all();
 
         // For non-admins, only show their own reports
-        if (!Auth::user()->isAdmin()) {
+        if (!(Auth::user()->isSuperAdmin() || Auth::user()->isCenterManager())) {
             $query->where('user_id', Auth::id());
         }
 
@@ -38,7 +38,7 @@ class ReportService
             $query->where('status', $filters['status']);
         }
 
-        return $query->paginate(10);
+        return $query;
     }
 
     public function updateReport(Report $report, array $data): Report

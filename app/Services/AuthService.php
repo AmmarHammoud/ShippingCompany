@@ -76,6 +76,10 @@ class AuthService {
             throw new Exception(__('messages.email_not_confirmed'), 403);
         }
 
+        if(!$user->active) {
+            throw new Exception('You can not log in because you are blocked', 403);
+        }
+
         $user = $this->appendRolesAndPermissions($user);
         $user['token'] = $user->createToken('Auth token')->plainTextToken;
         //$user['fcm_token'] = $request->fcm_token;

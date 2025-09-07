@@ -59,12 +59,15 @@ Route::get('shipments/{barcode}/confirm', [ShipmentController::class, 'confirmDe
 
 //super admin
 Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
-//    Route::controller(ReportController::class)->group(function() {
-//        Route::get('/reports/{report}', 'show');
-//        Route::delete('/reports/{report}', 'destroy');
-//        Route::post('/reports/{report}', 'update');
-//        Route::get('/reports', 'index');
-//    });
+    Route::controller(ReportController::class)->group(function() {
+        Route::prefix('super')->name('drivers.')->group(function () {
+        Route::post('/reports', 'store');
+        Route::get('/reports/{report}', 'show');
+        Route::post('/reports/{report}', 'update');
+        Route::delete('/reports/{report_id}', 'destroy');
+        Route::get('/reports', 'index');
+        });
+    });
 
     Route::get('users/all', [SuperAdminController::class, 'getAllUsers']);
     Route::delete('users/delete/{user_id}', [SuperAdminController::class, 'destroyUser']);
@@ -95,10 +98,6 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
     ->controller(CenterManagementController::class)
     ->group(function () {
 
-
-
-
-
         Route::prefix('drivers')->name('drivers.')->group(function () {
             Route::post('/', 'createDriver')->name('create');
             Route::get('/', 'getAllDrivers')->name('index');
@@ -116,9 +115,9 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
             Route::get('/{id}', 'getShipmentDetails')->name('detail');
             Route::get('/{id}/stats', 'getCenterShipmentStats')->name('stats');
             Route::post('/{id}/cancel', 'cancelShipment')->name('cancel');
-
+            Route::get('/pending/shipments', 'getPendingShipments');
+            Route::post('/confirm-shipment-receipt/{shipmentId}', 'confirmShipmentReceipt');
         });
-
 
 
         // Trailer routes
