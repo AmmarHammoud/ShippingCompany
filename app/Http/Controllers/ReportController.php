@@ -49,7 +49,7 @@ use AuthorizesRequests;
     public function show(Report $report)
     {
         try {
-            $this->authorize('view', $report);
+            //$this->authorize('view', $report);
             return Response::success('Report details retrieved', $report);
         } catch (Throwable $th) {
             return Response::error($th->getMessage(), $th->getCode());
