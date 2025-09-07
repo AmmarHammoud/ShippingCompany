@@ -41,8 +41,6 @@ return new class extends Migration
             $table->decimal('weight', 8, 2);
             $table->decimal('size')->nullable();//new attribute
             $table->decimal('delivery_price', 20, 2)->default(0);
-            $table->decimal('product_value', 10, 2);
-            $table->decimal('total_amount', 8, 2);
 
             $table->string('invoice_number')->unique();
             $table->string('barcode')->unique();

@@ -25,8 +25,7 @@ class Shipment extends Model
         'number_of_pieces',
         'weight',
         'delivery_price',
-        'product_value',
-        'total_amount',
+
         'invoice_number',
         'barcode',
         'status',

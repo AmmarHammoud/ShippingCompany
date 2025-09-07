@@ -18,7 +18,6 @@ class StoreShipmentRequest extends FormRequest
             'shipment_type' => 'required|string|max:255',
             'number_of_pieces' => 'required|integer|min:1',
             'weight' => 'required|numeric|min:0.1',
-            'product_value' => 'required|numeric|min:0',
         ];
     }
 }

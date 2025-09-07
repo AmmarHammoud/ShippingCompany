@@ -23,12 +23,12 @@ class ShipmentCreationService
     {
         $recipient = User::where('phone', $recipientData['recipient_phone'])->firstOrFail();
 
-
         if (! $recipient) {
             throw ValidationException::withMessages([
-                'recipient_phone' => ['  recipient not found']
+                'recipient_phone' => ['recipient not found']
             ]);
         }
+
         $centerFrom = NearestCenterService::getNearestCenter(
             $shipmentData['sender_lat'],
             $shipmentData['sender_lng']
@@ -66,9 +66,10 @@ class ShipmentCreationService
         $delivery_price_usd = $base_fee + $distance_fee + $weight_fee;
         $delivery_price = $delivery_price_usd * $exchange_rate;
 
+        // إنشاء الشحنة بدون product_value وبدون total_amount
         $shipment = Shipment::create([
             'client_id' => $client->id,
-            'recipient_id'     => $recipient->id,
+            'recipient_id' => $recipient->id,
             'recipient_phone' => $recipient->phone,
             'center_from_id' => $centerFrom->id,
             'center_to_id'   => $centerTo->id,
@@ -81,8 +82,6 @@ class ShipmentCreationService
             'number_of_pieces' => $shipmentData['number_of_pieces'],
             'weight' => $shipmentData['weight'],
             'delivery_price' => $delivery_price,
-            'product_value' => $shipmentData['product_value'],
-            'total_amount' => $shipmentData['product_value'] + $delivery_price,
             'invoice_number' => $invoice,
             'barcode' => $barcode,
             'status' => 'offered_pickup_driver',
@@ -158,17 +157,13 @@ class ShipmentCreationService
             $exchange_rate  = 10000;
             $new_delivery_price = round($delivery_price_usd * $exchange_rate, 2);
 
-            $old_delivery_price = $shipment->delivery_price;
-
             $shipment->delivery_price = $new_delivery_price;
-            $shipment->total_amount = $shipment->total_amount - $old_delivery_price + $new_delivery_price;
         }
 
         $shipment->fill($data)->save();
 
         return $shipment;
     }
-
 
     public static function cancel(int $shipmentId, $isAdmin = false): Shipment
     {
@@ -298,8 +293,6 @@ class ShipmentCreationService
             'number_of_pieces' => $shipmentData['number_of_pieces'],
             'weight' => $shipmentData['weight'],
             'delivery_price' => $delivery_price,
-            'product_value' => $shipmentData['product_value'],
-            'total_amount' => $shipmentData['product_value'] + $delivery_price,
             'invoice_number' => $invoice,
             'barcode' => $barcode,
             'status' => 'arrived_at_center',

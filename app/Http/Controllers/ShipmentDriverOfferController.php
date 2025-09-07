@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Http\Resources\AmmarResource;
 use App\Http\Resources\OffersResource;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class ShipmentDriverOfferController extends Controller
 {
@@ -435,6 +437,59 @@ class ShipmentDriverOfferController extends Controller
                 'error' => 'Failed to reject batch: ' . $e->getMessage()
             ], 500);
         }
+    }
+    public function updateDriver(Request $request, $driverId = null)
+    {
+        // إذا لم يتم تمرير driverId، استخدم السائق الحالي من التوكن
+        $driverId = $driverId ?? auth::id();
+
+        $rules = [
+            'name'        => 'sometimes|string|max:255',
+            'email'       => 'sometimes|email|unique:users,email,' . $driverId,
+            'phone'       => 'sometimes|string|unique:users,phone,' . $driverId,
+            'password'    => 'sometimes|string|min:6',
+            'center_id'   => 'sometimes|nullable|exists:centers,id',
+            'latitude'    => 'sometimes|nullable|numeric',
+            'longitude'   => 'sometimes|nullable|numeric',
+            'is_approved' => 'sometimes|boolean',
+            'active'      => 'sometimes|boolean',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Invalid Data',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        // تحديث البيانات التي تم تمريرها فقط
+        $dataToUpdate = $request->only(array_keys($rules));
+
+        // إذا تم تمرير كلمة المرور، قم بتشفيرها
+        if (isset($dataToUpdate['password'])) {
+            $dataToUpdate['password'] = Hash::make($dataToUpdate['password']);
+        }
+
+        $user = User::findOrFail($driverId);
+
+        $user->update([
+            'name'        => $dataToUpdate['name'] ?? $user->name,
+            'email'       => $dataToUpdate['email'] ?? $user->email,
+            'phone'       => $dataToUpdate['phone'] ?? $user->phone,
+            'password'    => $dataToUpdate['password'] ?? $user->password,
+            'center_id'   => $dataToUpdate['center_id'] ?? $user->center_id,
+            'is_approved' => $dataToUpdate['is_approved'] ?? $user->is_approved,
+            'active'      => $dataToUpdate['active'] ?? $user->active,
+            'latitude'    => $dataToUpdate['latitude'] ?? $user->latitude,
+            'longitude'   => $dataToUpdate['longitude'] ?? $user->longitude,
+        ]);
+
+        return response()->json([
+            'message' => 'Driver updated successfully.',
+            'data'    => $user
+        ]);
     }
 }
 

@@ -66,8 +66,6 @@ class ShipmentController extends Controller
                 'number_of_pieces' => $shipment->number_of_pieces,
                 'weight' => $shipment->weight,
                 'delivery_price' => $shipment->delivery_price,
-                'product_value' => $shipment->product_value,
-                'total_amount' => $shipment->total_amount,
                 'qr_code_url' => $shipment->qr_code_url,
                 'created_at' => $shipment->created_at,
                 'sender_location' => [
