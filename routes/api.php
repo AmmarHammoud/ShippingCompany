@@ -133,7 +133,7 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
             Route::get('/incoming/trailers', 'getIncomingTrailers');
             Route::post('/{trailerId}/arrived', 'arrivedTrailer');
             Route::get('/{trailerId}/shipments-list', 'getTrailerShipments')->name('get-shipments'); // done
-        });
+    });
 
         // Reports routes
         Route::prefix('reports')->name('reports.')->group(function () {
@@ -142,6 +142,12 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
             Route::get('/shipments', 'getShipmentsReport')->name('shipments');
         });
     });
+
+
+Route::middleware(['auth:sanctum', 'role:center_manager'])->group( function (){
+        Route::post('addtrailer22', [CenterManagementController::class,'store']);
+    }
+);
 
 
 Route::middleware(['auth:sanctum', 'role:driver'])->group(function(){
