@@ -79,13 +79,21 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::get('performance-kpis', [SuperAdminController::class, 'performanceKPIs']);
 });
 
+Route::middleware(['auth:sanctum', 'role:center_manager'])->group(function () {
+    Route::post('recipientbyadmin', [ShipmentController::class, 'storeRecipient2']);
+    Route::post('details2', [ShipmentController::class, 'storeShipment']);
+});
+
 Route::middleware(['auth:sanctum', 'role:center_manager'])
     ->prefix('centerManagement')
     ->name('centerManagement.')
     ->controller(CenterManagementController::class)
     ->group(function () {
 
-        // Drivers routes
+
+
+
+
         Route::prefix('drivers')->name('drivers.')->group(function () {
             Route::post('/', 'createDriver')->name('create');
             Route::get('/', 'getAllDrivers')->name('index');
@@ -103,7 +111,10 @@ Route::middleware(['auth:sanctum', 'role:center_manager'])
             Route::get('/{id}', 'getShipmentDetails')->name('detail');
             Route::get('/{id}/stats', 'getCenterShipmentStats')->name('stats');
             Route::post('/{id}/cancel', 'cancelShipment')->name('cancel');
+
         });
+
+
 
         // Trailer routes
         Route::prefix('trailers')->name('trailers.')->group(function () {
@@ -178,4 +189,3 @@ Route::get('/pusher-test', function () {
         return '❌ Error: ' . $e->getMessage();
         }
 });
-//omg new comment

@@ -26,7 +26,8 @@ class ShipmentDriverOfferController extends Controller
         try {
             $shipment = ShipmentDriverOfferService::accept((int) $shipmentId);
 
-            // جيب آخر عرض لنفس السائق الحالي
+
+
             $offer = \App\Models\ShipmentDriverOffer::where('shipment_id', $shipment->id)
                 ->where('driver_id', Auth::id())
                 ->latest()
