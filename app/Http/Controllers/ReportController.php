@@ -59,7 +59,7 @@ use AuthorizesRequests;
     public function update(UpdateReportRequest $request, Report $report)
     {
         try {
-            $this->authorize('update', $report);
+            //$this->authorize('update', $report);
             $updatedReport = $this->reportService->updateReport($report, $request->validated());
             return Response::success('Report updated successfully', $updatedReport);
         } catch (Throwable $th) {
@@ -70,7 +70,7 @@ use AuthorizesRequests;
     public function destroy(Report $report)
     {
         try {
-            $this->authorize('delete', $report);
+            //$this->authorize('delete', $report);
             $this->reportService->deleteReport($report);
             return Response::success('Report deleted successfully');
         } catch (Throwable $th) {
