@@ -14,8 +14,11 @@ use App\Models\User;
 use App\Services\KpiService;
 use App\Services\SuperAdminService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -40,6 +43,98 @@ class SuperAdminController extends Controller
             'success' => User::query()->where('id', $user_id)->delete(),
             'message' => 'User has been deleted successfully',
         ], 200);
+    }
+
+    public function blockUser($user_id) {
+        try {
+            DB::beginTransaction();
+
+            $user = User::findOrFail($user_id);
+
+            $user->update([
+                'active' => false,
+            ]);
+            if($user->role == 'driver') {
+                // إلغاء أي شحنات نشطة مرتبطة بالسائق
+                DB::table('shipments')
+                    ->where('pickup_driver_id', $user_id)
+                    ->whereIn('status', ['offered_pickup_driver', 'picked_up'])
+                    ->update([
+                        'pickup_driver_id' => null,
+                        'status' => 'pending'
+                    ]);
+
+                DB::table('shipments')
+                    ->where('delivery_driver_id', $user_id)
+                    ->whereIn('status', ['offered_delivery_driver', 'out_for_delivery'])
+                    ->update([
+                        'delivery_driver_id' => null,
+                        'status' => 'arrived_at_destination_center'
+                    ]);
+            }
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'تم حظر المستخدم بنجاح',
+                'data' => [
+                    'user' => $user
+                ]
+            ];
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            Log::error('User not found: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => ' User not found ',
+                'error' => $e->getMessage(),
+                'status' => 404
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error blocking user: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'حدث خطأ أثناء حظر المستخدم',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ];
+        }
+    }
+
+    public function unblockUser($user_id)
+    {
+        try {
+            $user = User::role('driver')->findOrFail($user_id);
+
+            $user->update([
+                'active' => true,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'تم إلغاء حظر المستخدم بنجاح',
+                'data' => [
+                    'user' => $user
+                ]
+            ];
+        } catch (ModelNotFoundException $e) {
+            Log::error('User not found: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'المستخدم غير موجود',
+                'error' => $e->getMessage(),
+                'status' => 404
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error unblocking user: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'حدث خطأ أثناء إلغاء حظر المستخدم',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ];
+        }
     }
 
     public function store(StoreCenterManagerRequest $request)

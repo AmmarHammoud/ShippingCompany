@@ -68,6 +68,8 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
 
     Route::get('users/all', [SuperAdminController::class, 'getAllUsers']);
     Route::delete('users/delete/{user_id}', [SuperAdminController::class, 'destroyUser']);
+    Route::post('users/block/{user_id}', [SuperAdminController::class, 'blockUser']);
+    Route::post('users/unblock/{user_id}', [SuperAdminController::class, 'unblockUser']);
     Route::post('addmanger', [SuperAdminController::class, 'store']);
     Route::post('updatemanager/{id}', [SuperAdminController::class, 'update']);
     Route::delete('deletemanager/{id}', [SuperAdminController::class, 'destroy']);
