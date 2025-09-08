@@ -37,8 +37,8 @@ jobs:
     - name: 📂 Upload public folder
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
-        server: win8140.site4now.net
-        username: quickship-001
+        server: ${{ secrets.HOST_NAME }}
+        username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }} 
         local-dir: ./public/
         server-dir: /public/
