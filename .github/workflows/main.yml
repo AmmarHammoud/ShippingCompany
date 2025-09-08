@@ -21,7 +21,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}  
         local-dir: ./   # entire project
-        server-dir: /ShippingCompany/   # deploy to shippingcompany directly
+        server-dir: /htdocs/   # deploy to shippingcompany directly
         exclude: |
           vendor/**
           node_modules/**
