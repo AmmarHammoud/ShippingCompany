@@ -41,7 +41,7 @@ jobs:
         username: quickship-001
         password: ${{ secrets.PASSWORD }} 
         local-dir: ./public/
-        server-dir: /ShippingCompany/public/
+        server-dir: /public/
         exclude: |
           .git/**
           node_modules/**
